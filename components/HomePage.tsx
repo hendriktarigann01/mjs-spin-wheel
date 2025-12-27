@@ -100,17 +100,9 @@ export function HomePage() {
     setShowModal(true);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#17242B] flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
-
   if (basePrizes.length === 0) {
     return (
-      <div className="min-h-screen bg-[#17242B] flex items-center justify-center">
+      <div className="h-screen bg-[#17242B] flex items-center justify-center">
         <div className="text-white text-center">
           <h2 className="text-2xl font-bold mb-2">No Prizes Available</h2>
           <p className="text-gray-400">Please contact admin to add prizes</p>
@@ -120,7 +112,7 @@ export function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#17242B] relative overflow-hidden p-3 md:p-5">
+    <div className="min-h-screen md:h-screen bg-[#17242B] relative overflow-hidden p-3 md:p-5">
       {/* Pattern - Hidden on mobile */}
       <div className="hidden md:block absolute top-0 left-0 w-100 h-100">
         <Image src="/entry-top.webp" fill alt="top" />
@@ -130,7 +122,7 @@ export function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex flex-col h-screen">
+      <div className="relative z-10 flex flex-col h-full">
         {/* Header */}
         <div className="w-full flex justify-between items-center mb-4 md:mb-0">
           <div className="w-auto h-12 md:h-16">
@@ -154,9 +146,9 @@ export function HomePage() {
         </div>
 
         {/* Main Wheel - Responsive Layout */}
-        <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-16 max-w-7xl mx-auto w-full overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-0 md:gap-16 max-w-7xl mx-auto w-full">
           {/* Spin Wheel */}
-          <div className="flex justify-center w-full md:flex-1">
+          <div className="flex justify-center w-full md:flex-1 scale-60 sm:scale-95">
             <SpinWheel
               prizes={wheelPrizes}
               onSpinComplete={handleSpinComplete}
@@ -164,7 +156,7 @@ export function HomePage() {
           </div>
 
           {/* Prize Display - Below on mobile/tablet, side on desktop */}
-          <div className="w-full md:w-64 overflow-hidden">
+          <div className="w-full md:w-64 relative scale-80 sm:scale-95 md:static bottom-30 md:bottom-0">
             <PrizeDisplay prizes={basePrizes} />
           </div>
         </div>
