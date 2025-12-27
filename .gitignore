@@ -35,10 +35,8 @@ yarn-error.log*
 .env
 .env.local  
 
-/data/
-*.db
-*.db-shm
-*.db-wal
+/data/*
+!/data/.gitkeep
 
 # prizes images
 public/prize/*
