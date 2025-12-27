@@ -5,75 +5,119 @@ import { useState, useEffect } from "react";
 import { SpinWheel } from "@/components/SpinWheel";
 import { PrizeDisplay } from "@/components/PrizeDisplay";
 import { Modal } from "@/components/Modal";
-import { BASE_PRIZES, WHEEL_PRIZES } from "@/components/config/prizes";
 import { Prize } from "@/components/types/prize";
 
 export function HomePage() {
   const IS_PRODUCTION = process.env.NEXT_PUBLIC_MODE === "production";
-  const [wheelPrizes, setWheelPrizes] = useState<Prize[]>(WHEEL_PRIZES);
-  const [basePrizes, setBasePrizes] = useState<Prize[]>(BASE_PRIZES);
+  const [wheelPrizes, setWheelPrizes] = useState<Prize[]>([]);
+  const [basePrizes, setBasePrizes] = useState<Prize[]>([]);
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadAdminSettings = async () => {
+    const loadPrizes = async () => {
       try {
-        const result = await window.storage.get("admin-prizes");
-        if (result?.value) {
-          const adminPrizes = JSON.parse(result.value);
-          setBasePrizes(adminPrizes);
+        setLoading(true);
+        const response = await fetch("/api/prizes");
+        const result = await response.json();
 
-          setWheelPrizes((prev) =>
-            prev.map((p) => {
-              const pOriginalId = p.originalId || p.id;
-              const adminPrize = adminPrizes.find(
-                (ap: Prize) => ap.id === pOriginalId
-              );
-              return adminPrize
-                ? { ...p, stock: adminPrize.stock, weight: adminPrize.weight }
-                : p;
-            })
-          );
+        if (result.success && result.data.length > 0) {
+          const prizes = result.data;
+          setBasePrizes(prizes);
+
+          // Create wheel segments (4 repetitions)
+          const wheelSegments = createWheelSegments(prizes);
+          setWheelPrizes(wheelSegments);
         }
       } catch (error) {
-        console.log("Using default prize settings");
+        console.error("Error loading prizes:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadAdminSettings();
+    loadPrizes();
   }, []);
 
-  const handleSpinComplete = (prize: Prize) => {
+  const createWheelSegments = (prizes: Prize[]): Prize[] => {
+    const segments: Prize[] = [];
+    const repetitions = 4;
+    let idCounter = 1;
+
+    for (let i = 0; i < repetitions; i++) {
+      prizes.forEach((prize) => {
+        segments.push({
+          ...prize,
+          id: idCounter++,
+          originalId: prize.id,
+        });
+      });
+    }
+
+    return segments;
+  };
+
+  const handleSpinComplete = async (prize: Prize) => {
     const originalId = prize.originalId || prize.id;
 
-    // Update stock in base prizes
-    const updatedBasePrizes = basePrizes.map((p) =>
-      p.id === originalId ? { ...p, stock: Math.max(0, p.stock - 1) } : p
-    );
-    setBasePrizes(updatedBasePrizes);
+    try {
+      // Decrease stock via API
+      const response = await fetch("/api/prizes/decrease-stock", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: originalId }),
+      });
 
-    // Save to storage
-    window.storage
-      .set("admin-prizes", JSON.stringify(updatedBasePrizes))
-      .catch(console.error);
+      if (response.ok) {
+        // Reload prizes to get updated stock
+        try {
+          setLoading(true);
+          const response = await fetch("/api/prizes");
+          const result = await response.json();
 
-    // Update stock in all wheel segments with same originalId
-    setWheelPrizes((prev) =>
-      prev.map((p) => {
-        const pOriginalId = p.originalId || p.id;
-        if (pOriginalId === originalId) {
-          const updatedBasePrize = updatedBasePrizes.find(
-            (bp) => bp.id === originalId
-          );
-          return { ...p, stock: updatedBasePrize?.stock || 0 };
+          if (result.success && result.data.length > 0) {
+            const prizes = result.data;
+            setBasePrizes(prizes);
+
+            // Create wheel segments (4 repetitions)
+            const wheelSegments = createWheelSegments(prizes);
+            setWheelPrizes(wheelSegments);
+          }
+        } catch (error) {
+          console.error("Error loading prizes:", error);
+        } finally {
+          setLoading(false);
         }
-        return p;
-      })
-    );
+      }
+    } catch (error) {
+      console.error("Error updating stock:", error);
+    }
 
     setSelectedPrize(prize);
     setShowModal(true);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#17242B] flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (basePrizes.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#17242B] flex items-center justify-center">
+        <div className="text-white text-center">
+          <h2 className="text-2xl font-bold mb-2">No Prizes Available</h2>
+          <p className="text-gray-400">Please contact admin to add prizes</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#17242B] relative overflow-hidden p-3 md:p-5">
@@ -182,7 +226,7 @@ export function HomePage() {
           <p className="font-bold mb-2">Base Prizes:</p>
           {basePrizes.map((p) => (
             <p key={p.id}>
-              {p.name}: W={p.weight}% S={p.stock}
+              {p.name}: W={p.weight} S={p.stock}
             </p>
           ))}
         </div>

@@ -1,9 +1,12 @@
+// lib/db/blobSync.ts
 import { put, head, del } from "@vercel/blob";
 import fs from "fs";
 import path from "path";
 
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN!;
 const DB_BLOB_PATH = "prizes.db";
+
+const IS_LOCAL = !BLOB_TOKEN || !BLOB_TOKEN.startsWith("vercel_blob_rw_");
 
 export class BlobSyncService {
   private dbPath: string;
@@ -16,6 +19,14 @@ export class BlobSyncService {
    * Download database from Vercel Blob to local
    */
   async downloadFromBlob(): Promise<boolean> {
+    // Skip blob sync in local development
+    if (IS_LOCAL) {
+      console.log(
+        "Local mode: Skipping blob download (using local SQLite file)"
+      );
+      return false;
+    }
+
     try {
       // Check if blob exists
       const metadata = await head(DB_BLOB_PATH, {
@@ -51,6 +62,14 @@ export class BlobSyncService {
    * Upload local database to Vercel Blob
    */
   async uploadToBlob(): Promise<boolean> {
+    // Skip blob sync in local development
+    if (IS_LOCAL) {
+      console.log(
+        "Local mode: Skipping blob upload (changes saved to local SQLite file)"
+      );
+      return true; // Return true so the flow doesn't break
+    }
+
     try {
       if (!fs.existsSync(this.dbPath)) {
         console.error("Database file not found");
@@ -78,13 +97,13 @@ export class BlobSyncService {
    * Sync workflow: Download → Modify → Upload
    */
   async withSync<T>(callback: () => Promise<T>): Promise<T> {
-    // Download latest version
+    // Download latest version (skipped in local mode)
     await this.downloadFromBlob();
 
     // Execute the operation
     const result = await callback();
 
-    // Upload back to blob
+    // Upload back to blob (skipped in local mode)
     await this.uploadToBlob();
 
     return result;
@@ -94,6 +113,11 @@ export class BlobSyncService {
    * Delete database from blob (for cleanup)
    */
   async deleteFromBlob(): Promise<boolean> {
+    if (IS_LOCAL) {
+      console.log("Local mode: Skipping blob delete");
+      return true;
+    }
+
     try {
       await del(DB_BLOB_PATH, {
         token: BLOB_TOKEN,

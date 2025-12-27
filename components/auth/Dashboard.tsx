@@ -2,17 +2,9 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Save, Info } from "lucide-react";
+import { Save, Info, Plus, Trash2, Upload } from "lucide-react";
 import { ConfirmModal } from "@/components/modal/ConfirmModal";
-
-interface Prize {
-  id: number;
-  name: string;
-  weight: number;
-  stock: number;
-  color: string;
-  image?: string;
-}
+import { Prize } from "@/components/types/prize";
 
 interface DashboardProps {
   onLogout: () => void;
@@ -22,6 +14,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [showFormula, setShowFormula] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -66,7 +59,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
       if (result.success) {
         setShowConfirmModal(false);
         alert("Stock updated successfully!");
-        await loadPrizes(); // Reload to confirm
+        await loadPrizes();
       } else {
         alert("Failed to save: " + result.error);
       }
@@ -76,13 +69,50 @@ export function Dashboard({ onLogout }: DashboardProps) {
     }
   };
 
+  const handleDeletePrize = async (id: number, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/prizes/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("Prize deleted successfully!");
+        await loadPrizes();
+      } else {
+        alert("Failed to delete: " + result.error);
+      }
+    } catch (error) {
+      console.error("Error deleting:", error);
+      alert("Failed to delete prize");
+    }
+  };
+
   const updatePrize = (
     id: number,
     field: "weight" | "stock",
     value: number
   ) => {
     setPrizes((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, [field]: Math.max(0, value) } : p))
+      prev.map((p) => {
+        if (p.id === id) {
+          // ZONK hanya bisa edit weight, stock tetap 9999
+          if (p.name === "ZONK" && field === "stock") {
+            return p;
+          }
+          return { ...p, [field]: Math.max(0, value) };
+        }
+        return p;
+      })
     );
   };
 
@@ -150,7 +180,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               </button>
 
               {showFormula && (
-                <div className="mt-4 p-5 rounded-xl bg-black/20 border border-white/5 space-y-4 text-sm animate-in fade-in slide-in-from-top-2">
+                <div className="mt-4 p-5 rounded-xl bg-black/20 border border-white/5 space-y-4 text-sm">
                   <h3 className="font-bold text-lg text-white">
                     How Weighted Random Selection Works:
                   </h3>
@@ -196,9 +226,18 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </div>
 
             <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-6">
-              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                Prize Inventory
-              </h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  Prize Inventory
+                </h2>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Prize
+                </button>
+              </div>
 
               <div className="grid gap-4">
                 {prizes.map((prize) => {
@@ -215,9 +254,22 @@ export function Dashboard({ onLogout }: DashboardProps) {
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                         <div className="flex-1">
-                          <h3 className="text-lg font-bold text-white group-hover:text-teal-400 transition-colors">
-                            {prize.name}
-                          </h3>
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-bold text-white group-hover:text-teal-400 transition-colors">
+                              {prize.name}
+                            </h3>
+                            {!isZonk && (
+                              <button
+                                onClick={() =>
+                                  handleDeletePrize(prize.id, prize.name)
+                                }
+                                className="text-red-400 hover:text-red-300 transition-colors"
+                                title="Delete prize"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2 mt-2">
                             <div
                               className="w-3 h-3 rounded-full shadow-lg"
@@ -247,14 +299,13 @@ export function Dashboard({ onLogout }: DashboardProps) {
                                   parseInt(e.target.value) || 0
                                 )
                               }
-                              className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 outline-none transition-all disabled:opacity-30"
+                              className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 outline-none transition-all"
                               min="0"
-                              disabled={isZonk}
                             />
                           </div>
                           <div className="flex-1">
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">
-                              Stock
+                              Stock {isZonk && "(Fixed)"}
                             </label>
                             <input
                               type="number"
@@ -266,7 +317,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                                   parseInt(e.target.value) || 0
                                 )
                               }
-                              className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 outline-none transition-all disabled:opacity-30"
+                              className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 outline-none transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                               min="0"
                               disabled={isZonk}
                             />
@@ -294,7 +345,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
           </div>
 
           <div className="lg:col-span-1">
-            <div className="lg:sticky space-y-6">
+            <div className="lg:sticky lg:top-8 space-y-6">
               <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-6">
                 <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                   Statistics Overview
@@ -365,6 +416,297 @@ export function Dashboard({ onLogout }: DashboardProps) {
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
+
+      {showAddModal && (
+        <AddPrizeModal
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            setShowAddModal(false);
+            loadPrizes();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Add Prize Modal Component
+function AddPrizeModal({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const COLORS = [
+    { value: "#36B0A9", label: "Teal Light" },
+    { value: "#277C79", label: "Teal Dark" },
+  ];
+
+  const [formData, setFormData] = useState({
+    name: "",
+    image: "",
+    weight: 10,
+    stock: 50,
+    color: COLORS[0].value,
+  });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.name) {
+      alert("Please enter prize name");
+      return;
+    }
+
+    if (!selectedFile) {
+      alert("Please select an image");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setUploading(true);
+
+      // Upload image first
+      const imageFormData = new FormData();
+      imageFormData.append("file", selectedFile);
+
+      const uploadResponse = await fetch("/api/prizes/upload-image", {
+        method: "POST",
+        body: imageFormData,
+      });
+
+      const uploadResult = await uploadResponse.json();
+
+      if (!uploadResult.success) {
+        alert("Failed to upload image: " + uploadResult.error);
+        return;
+      }
+
+      setUploading(false);
+
+      // Create prize with uploaded image path
+      const response = await fetch("/api/prizes/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          image: uploadResult.path,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("Prize created successfully!");
+        onSuccess();
+      } else {
+        alert("Failed to create prize: " + result.error);
+      }
+    } catch (error) {
+      console.error("Error creating prize:", error);
+      alert("Failed to create prize");
+    } finally {
+      setLoading(false);
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-2xl font-bold text-white">Add New Prize</h3>
+          <button
+            onClick={onClose}
+            className="text-white/60 hover:text-white transition-colors"
+            disabled={loading}
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-white/90 mb-2">
+              Prize Name *
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value.toUpperCase() })
+              }
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-teal-500 uppercase"
+              placeholder="e.g. T-SHIRT"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-white/90 mb-2">
+              Prize Image *
+            </label>
+            <div className="space-y-3">
+              <label className="block cursor-pointer">
+                <div className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-all flex items-center justify-center gap-2">
+                  <Upload className="w-5 h-5" />
+                  <span>
+                    {selectedFile ? selectedFile.name : "Choose image file"}
+                  </span>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  required
+                  disabled={loading}
+                />
+              </label>
+
+              {previewUrl && (
+                <div className="w-full h-32 bg-white/5 border border-white/10 rounded-xl overflow-hidden flex items-center justify-center">
+                  <Image
+                    width={200}
+                    height={200}
+                    src={previewUrl}
+                    alt="Preview"
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-white/90 mb-2">
+                Weight
+              </label>
+              <input
+                type="number"
+                value={formData.weight}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    weight: parseInt(e.target.value) || 0,
+                  })
+                }
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                min="0"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-white/90 mb-2">
+                Stock
+              </label>
+              <input
+                type="number"
+                value={formData.stock}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    stock: parseInt(e.target.value) || 0,
+                  })
+                }
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                min="0"
+                required
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-white/90 mb-2">
+              Wheel Color
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {COLORS.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() =>
+                    setFormData({ ...formData, color: color.value })
+                  }
+                  disabled={loading}
+                  className={`
+                    px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-3
+                    ${
+                      formData.color === color.value
+                        ? "border-white bg-white/20"
+                        : "border-white/20 bg-white/5 hover:bg-white/10"
+                    }
+                  `}
+                >
+                  <div
+                    className="w-6 h-6 rounded-full border-2 border-white/50"
+                    style={{ backgroundColor: color.value }}
+                  />
+                  <span className="text-white text-sm font-medium">
+                    {color.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {uploading
+                ? "Uploading..."
+                : loading
+                ? "Creating..."
+                : "Create Prize"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

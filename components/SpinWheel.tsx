@@ -2,10 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Prize } from "@/components/types/prize";
-import {
-  selectPrizeFromWheel,
-  calculateWheelRotation,
-} from "@/components/config/prizes";
 
 interface SpinWheelProps {
   prizes: Prize[];
@@ -15,6 +11,48 @@ interface SpinWheelProps {
 const TOTAL_LIGHTS = 12;
 const SPIN_DURATION = 4000;
 const DEFAULT_SPINS = 5;
+
+// Prize selection logic dengan weighted random
+const selectPrizeFromWheel = (prizes: Prize[]): Prize => {
+  const availablePrizes = prizes.filter((p) => p.stock > 0);
+
+  if (availablePrizes.length === 0) {
+    return prizes[prizes.length - 1]; 
+  }
+
+  const totalWeight = availablePrizes.reduce((sum, p) => sum + p.weight, 0);
+  let random = Math.random() * totalWeight;
+
+  for (const prize of availablePrizes) {
+    random -= prize.weight;
+    if (random <= 0) return prize;
+  }
+
+  return availablePrizes[0];
+};
+
+// Calculate rotation untuk spin wheel
+const calculateWheelRotation = (
+  currentRotation: number,
+  prizeIndex: number,
+  totalPrizes: number,
+  spins: number = 5
+): number => {
+  const segmentAngle = 360 / totalPrizes;
+  const segmentCenterAngle = prizeIndex * segmentAngle + segmentAngle / 2;
+  const targetAngle = 90 - segmentCenterAngle;
+  const normalizedCurrent = currentRotation % 360;
+  const baseRotation = 360 * spins;
+  const finalRotation = baseRotation + targetAngle;
+
+  let totalRotation = currentRotation - normalizedCurrent + finalRotation;
+
+  if (totalRotation - currentRotation < 360 * spins) {
+    totalRotation += 360;
+  }
+
+  return totalRotation;
+};
 
 export const SpinWheel: React.FC<SpinWheelProps> = ({
   prizes,
@@ -92,7 +130,7 @@ const Lamp = ({ index, isActive }: { index: number; isActive: boolean }) => (
   <div className="relative flex items-center justify-center">
     {/* Glow Layer (Hanya muncul saat aktif) */}
     {isActive && (
-      <div className="absolute inset-0 bg-[#FF842C] rounded-full blur-[12px] opacity-60 animate-pulse" />
+      <div className="absolute inset-0 bg-[#FF842C] rounded-full blur-md opacity-60 animate-pulse" />
     )}
 
     <div
@@ -101,10 +139,10 @@ const Lamp = ({ index, isActive }: { index: number; isActive: boolean }) => (
         border-b-2 border-black/20
         ${
           isActive
-            ? "bg-gradient-to-tr from-[#E65100] via-[#FF842C] to-[#FFCC80] scale-110 shadow-[0_0_25px_5px_rgba(255,132,44,0.6)]"
+            ? "bg-linear-to-tr from-[#E65100] via-[#FF842C] to-[#FFCC80] scale-110 shadow-[0_0_25px_5px_rgba(255,132,44,0.6)]"
             : index % 2 === 0
-            ? "bg-gradient-to-tr from-[#5E9A97] to-[#7DD3CE] brightness-75"
-            : "bg-gradient-to-tr from-[#5E9A97] to-[#7DD3CE] brightness-75"
+            ? "bg-linear-to-tr from-[#5E9A97] to-[#7DD3CE] brightness-75"
+            : "bg-linear-to-tr from-[#5E9A97] to-[#7DD3CE] brightness-75"
         }
       `}
     >
@@ -203,7 +241,7 @@ const WheelSegments = ({
 
       const pathData = `M 250 250 L ${x1} ${y1} A 230 230 0 ${largeArc} 1 ${x2} ${y2} Z`;
 
-      const midAngle = ((startAngle + endAngle) / 2);
+      const midAngle = (startAngle + endAngle) / 2;
       const imgX = 250 + 160 * Math.cos(midAngle);
       const imgY = 250 + 155 * Math.sin(midAngle);
       const imgRotation = index * segmentAngle + segmentAngle / 2 + 90;
