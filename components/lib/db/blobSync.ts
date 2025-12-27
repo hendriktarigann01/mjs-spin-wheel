@@ -12,7 +12,7 @@ export class BlobSyncService {
   private dbPath: string;
 
   constructor() {
-    this.dbPath = path.join(process.cwd(), "data", "prizes.db");
+    this.dbPath = path.join(process.cwd(), "tmp", "prizes.db");
   }
 
   /**
@@ -129,6 +129,21 @@ export class BlobSyncService {
       return false;
     }
   }
+}
+
+export async function uploadPrizeImage(filename: string) {
+  const localPath = path.join("/prize", filename);
+
+  if (!fs.existsSync(localPath)) throw new Error("File not found");
+
+  const buffer = fs.readFileSync(localPath);
+
+  const blob = await put(`prizes/${filename}`, buffer, {
+    access: "public",
+    token: process.env.BLOB_TOKEN!,
+  });
+
+  return blob.url;
 }
 
 export const blobSync = new BlobSyncService();

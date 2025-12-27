@@ -499,7 +499,6 @@ function AddPrizeModal({
 
       setUploading(false);
 
-      // Create prize with uploaded image path
       const response = await fetch("/api/prizes/create", {
         method: "POST",
         headers: {

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     const prize = await PrizeService.createPrize({
       name,
-      image,
+      image, 
       weight: Number(weight),
       stock: Number(stock),
       color,

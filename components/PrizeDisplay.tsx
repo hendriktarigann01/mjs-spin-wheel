@@ -11,7 +11,6 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
 
   return (
     <>
-      {/* Desktop version - Vertical scroll */}
       <div className="hidden md:block relative h-full max-h-170 overflow-hidden">
         <div
           className="flex flex-col"

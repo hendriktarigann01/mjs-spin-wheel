@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { put } from "@vercel/blob";
+
+const BLOB_TOKEN = process.env.BLOB_TOKEN!;
 
 export const dynamic = "force-dynamic";
 
@@ -19,45 +22,41 @@ export async function POST(request: NextRequest) {
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid file type. Only JPG, PNG, and WebP are allowed",
-        },
+        { success: false, error: "Invalid file type" },
         { status: 400 }
       );
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
-        { success: false, error: "File too large. Maximum size is 5MB" },
+        { success: false, error: "File too large" },
         { status: 400 }
       );
     }
 
-    // Generate unique filename
+    // Simpan sementara di /tmp
     const timestamp = Date.now();
     const extension = file.name.split(".").pop();
     const filename = `prize-${timestamp}.${extension}`;
-
-    // Ensure upload directory exists
-    const uploadDir = path.join(process.cwd(), "public", "prize");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    const tmpDir = path.join("/tmp", "prize");
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const filepath = path.join(uploadDir, filename);
+    const tmpPath = path.join(tmpDir, filename);
+    fs.writeFileSync(tmpPath, buffer);
 
-    fs.writeFileSync(filepath, buffer);
+    // Upload ke Vercel Blob
+    const blob = await put(`prizes/${filename}`, buffer, {
+      access: "public",
+      token: BLOB_TOKEN,
+    });
 
-    const publicPath = `/prize/${filename}`;
-
+    // Kembalikan URL publik
     return NextResponse.json({
       success: true,
-      path: publicPath,
+      url: blob.url, 
       filename: filename,
     });
   } catch (error) {
