@@ -148,7 +148,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
         />
       </div>
 
-      <div className="relative z-10 max-w-[1500px] mx-auto">
+      <div className="relative z-10 max-w-375 mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-6">
@@ -596,8 +596,10 @@ function AddPrizeModal({
 
               {previewUrl && (
                 <div className="w-full h-32 bg-white/5 border border-white/10 rounded-xl overflow-hidden flex items-center justify-center">
-                  <img
+                  <Image
                     src={previewUrl}
+                    width={150}
+                    height={150}
                     alt="Preview"
                     className="max-h-full max-w-full object-contain"
                   />
