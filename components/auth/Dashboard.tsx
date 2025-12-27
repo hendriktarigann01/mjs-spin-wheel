@@ -148,7 +148,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
         />
       </div>
 
-      <div className="relative z-10 max-w-375 mx-auto">
+      <div className="relative z-10 max-w-[1500px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-6">
@@ -485,7 +485,7 @@ function AddPrizeModal({
       const imageFormData = new FormData();
       imageFormData.append("file", selectedFile);
 
-      const uploadResponse = await fetch("/api/prizes/upload-image", {
+      const uploadResponse = await fetch("/api/upload/image", {
         method: "POST",
         body: imageFormData,
       });
@@ -499,6 +499,7 @@ function AddPrizeModal({
 
       setUploading(false);
 
+      // Create prize with uploaded image URL
       const response = await fetch("/api/prizes/create", {
         method: "POST",
         headers: {
@@ -506,7 +507,7 @@ function AddPrizeModal({
         },
         body: JSON.stringify({
           ...formData,
-          image: uploadResult.path,
+          image: uploadResult.url,
         }),
       });
 
@@ -595,9 +596,7 @@ function AddPrizeModal({
 
               {previewUrl && (
                 <div className="w-full h-32 bg-white/5 border border-white/10 rounded-xl overflow-hidden flex items-center justify-center">
-                  <Image
-                    width={200}
-                    height={200}
+                  <img
                     src={previewUrl}
                     alt="Preview"
                     className="max-h-full max-w-full object-contain"

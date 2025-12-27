@@ -42,6 +42,13 @@ yarn-error.log*
 public/prize/*
 !public/prize/.gitkeep
 
+# Default for prize images
+!public/prize/keychain.png
+!public/prize/notebook.png
+!public/prize/mug.png
+!public/prize/fan.png
+!public/prize/zonk.png
+
 # vercel
 .vercel
 

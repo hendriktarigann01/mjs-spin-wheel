@@ -1,19 +1,15 @@
 // lib/db/schema.ts
 import Database from "better-sqlite3";
-import path from "path";
-import fs from "fs";
+import { blobSync } from "./blobSync";
 
 export function initDatabase(): Database.Database {
-  const dbDir = path.join(process.cwd(), "data");
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
-  }
+  const dbPath = blobSync.getDbPath();
 
-  const dbPath = path.join(dbDir, "prizes.db");
   const db = new Database(dbPath);
 
   db.pragma("journal_mode = WAL");
 
+  // Create prizes table
   db.exec(`
     CREATE TABLE IF NOT EXISTS prizes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,6 +23,7 @@ export function initDatabase(): Database.Database {
     )
   `);
 
+  // Create trigger for updated_at
   db.exec(`
     CREATE TRIGGER IF NOT EXISTS update_prizes_timestamp 
     AFTER UPDATE ON prizes

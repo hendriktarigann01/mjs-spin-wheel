@@ -1,4 +1,4 @@
-// lib/db/blobSync.ts
+
 import { put, head, del } from "@vercel/blob";
 import fs from "fs";
 import path from "path";
@@ -8,27 +8,50 @@ const DB_BLOB_PATH = "prizes.db";
 
 const IS_LOCAL = !BLOB_TOKEN || !BLOB_TOKEN.startsWith("vercel_blob_rw_");
 
+// Use local path in development
+const getDbPath = () => {
+  if (IS_LOCAL) {
+    return path.join(process.cwd(), "data", "prizes.db");
+  } else {
+    // In production (Vercel), use /tmp directory (writable)
+    return path.join("/tmp", "prizes.db");
+  }
+};
+
 export class BlobSyncService {
   private dbPath: string;
 
   constructor() {
-    this.dbPath = path.join(process.cwd(), "tmp", "prizes.db");
+    this.dbPath = getDbPath();
+  }
+
+  /**
+   * Ensure directory exists (only works in local or /tmp)
+   */
+  private ensureDir(dirPath: string) {
+    try {
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+    } catch (error) {
+      console.warn("Could not create directory:", error);
+    }
   }
 
   /**
    * Download database from Vercel Blob to local
    */
   async downloadFromBlob(): Promise<boolean> {
-    // Skip blob sync in local development
     if (IS_LOCAL) {
       console.log(
         "Local mode: Skipping blob download (using local SQLite file)"
       );
+      const dbDir = path.dirname(this.dbPath);
+      this.ensureDir(dbDir);
       return false;
     }
 
     try {
-      // Check if blob exists
       const metadata = await head(DB_BLOB_PATH, {
         token: BLOB_TOKEN,
       });
@@ -38,19 +61,17 @@ export class BlobSyncService {
         return false;
       }
 
-      // Download the blob
       const response = await fetch(metadata.url);
       const buffer = await response.arrayBuffer();
 
-      // Ensure directory exists
       const dbDir = path.dirname(this.dbPath);
-      if (!fs.existsSync(dbDir)) {
-        fs.mkdirSync(dbDir, { recursive: true });
-      }
+      this.ensureDir(dbDir);
 
-      // Write to local file
       fs.writeFileSync(this.dbPath, Buffer.from(buffer));
-      console.log("Database downloaded from blob successfully");
+      console.log(
+        "Database downloaded from blob successfully to",
+        this.dbPath
+      );
       return true;
     } catch (error) {
       console.error("Error downloading from blob:", error);
@@ -62,24 +83,21 @@ export class BlobSyncService {
    * Upload local database to Vercel Blob
    */
   async uploadToBlob(): Promise<boolean> {
-    // Skip blob sync in local development
     if (IS_LOCAL) {
       console.log(
         "Local mode: Skipping blob upload (changes saved to local SQLite file)"
       );
-      return true; // Return true so the flow doesn't break
+      return true;
     }
 
     try {
       if (!fs.existsSync(this.dbPath)) {
-        console.error("Database file not found");
+        console.error("Database file not found at", this.dbPath);
         return false;
       }
 
-      // Read the database file
       const buffer = fs.readFileSync(this.dbPath);
 
-      // Upload to Vercel Blob
       const blob = await put(DB_BLOB_PATH, buffer, {
         access: "public",
         token: BLOB_TOKEN,
@@ -97,13 +115,10 @@ export class BlobSyncService {
    * Sync workflow: Download → Modify → Upload
    */
   async withSync<T>(callback: () => Promise<T>): Promise<T> {
-    // Download latest version (skipped in local mode)
     await this.downloadFromBlob();
 
-    // Execute the operation
     const result = await callback();
 
-    // Upload back to blob (skipped in local mode)
     await this.uploadToBlob();
 
     return result;
@@ -129,21 +144,13 @@ export class BlobSyncService {
       return false;
     }
   }
-}
 
-export async function uploadPrizeImage(filename: string) {
-  const localPath = path.join("/prize", filename);
-
-  if (!fs.existsSync(localPath)) throw new Error("File not found");
-
-  const buffer = fs.readFileSync(localPath);
-
-  const blob = await put(`prizes/${filename}`, buffer, {
-    access: "public",
-    token: process.env.BLOB_TOKEN!,
-  });
-
-  return blob.url;
+  /**
+   * Get current database path
+   */
+  getDbPath(): string {
+    return this.dbPath;
+  }
 }
 
 export const blobSync = new BlobSyncService();
