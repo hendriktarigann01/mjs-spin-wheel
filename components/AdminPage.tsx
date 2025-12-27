@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Login } from "@/components/auth/Login";
 import { Dashboard } from "@/components/auth/Dashboard";
 
 export function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
     const authData = localStorage.getItem("adminAuth");
     if (authData) {
       try {
         const { expiry } = JSON.parse(authData);
         if (Date.now() < expiry) {
-          return true;
+          setIsAuthenticated(true);
         } else {
           localStorage.removeItem("adminAuth");
         }
@@ -19,8 +21,7 @@ export function AdminPage() {
         localStorage.removeItem("adminAuth");
       }
     }
-    return false;
-  });
+  }, []);
 
   const handleLogin = () => {
     setIsAuthenticated(true);

@@ -1,6 +1,6 @@
-import { initDatabase } from "./schema";
+import { initDatabase } from "@/components/lib/db/schema";
 import { blobSync } from "./blobSync";
-import type { Prize } from "./schema";
+import type { Prize } from "@/components/types/prize";
 
 export class PrizeService {
   /**
