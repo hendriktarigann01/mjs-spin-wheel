@@ -33,12 +33,16 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env
-.env.local
+.env.local  
 
 /data/
 *.db
 *.db-shm
 *.db-wal
+
+# prizes images
+public/prize/*
+!public/prize/.gitkeep
 
 # vercel
 .vercel
