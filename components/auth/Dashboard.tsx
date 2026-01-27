@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Save, Info, Plus, Trash2, Upload } from "lucide-react";
 import { ConfirmModal } from "@/components/modal/ConfirmModal";
 import { Prize } from "@/components/types/prize";
+import { CustomizationPanel } from "@/components/auth/CustomizationPanel";
 
 interface DashboardProps {
   onLogout: () => void;
@@ -100,7 +101,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const updatePrize = (
     id: number,
     field: "weight" | "stock",
-    value: number
+    value: number,
   ) => {
     setPrizes((prev) =>
       prev.map((p) => {
@@ -112,13 +113,13 @@ export function Dashboard({ onLogout }: DashboardProps) {
           return { ...p, [field]: Math.max(0, value) };
         }
         return p;
-      })
+      }),
     );
   };
 
   const totalWeight = prizes.reduce(
     (sum, p) => sum + (p.stock > 0 ? p.weight : 0),
-    0
+    0,
   );
 
   if (loading) {
@@ -296,7 +297,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                                 updatePrize(
                                   prize.id,
                                   "weight",
-                                  parseInt(e.target.value) || 0
+                                  parseInt(e.target.value) || 0,
                                 )
                               }
                               className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 outline-none transition-all"
@@ -314,7 +315,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                                 updatePrize(
                                   prize.id,
                                   "stock",
-                                  parseInt(e.target.value) || 0
+                                  parseInt(e.target.value) || 0,
                                 )
                               }
                               className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-teal-500 outline-none transition-all disabled:opacity-30 disabled:cursor-not-allowed"
@@ -407,6 +408,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               </div>
             </div>
           </div>
+          <CustomizationPanel />
         </div>
       </div>
 
@@ -701,8 +703,8 @@ function AddPrizeModal({
               {uploading
                 ? "Uploading..."
                 : loading
-                ? "Creating..."
-                : "Create Prize"}
+                  ? "Creating..."
+                  : "Create Prize"}
             </button>
           </div>
         </form>

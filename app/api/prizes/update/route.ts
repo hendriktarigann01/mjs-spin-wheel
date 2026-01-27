@@ -1,6 +1,6 @@
 // app/api/prizes/update/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import PrizeService from "@/components/lib/db/service";
+import PrizeService from "@/components/lib/db/appService";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export async function PUT(request: NextRequest) {
     if (!Array.isArray(prizes)) {
       return NextResponse.json(
         { success: false, error: "Invalid data format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -33,7 +33,7 @@ export async function PUT(request: NextRequest) {
     console.error("Error updating prizes:", error);
     return NextResponse.json(
       { success: false, error: "Failed to update prizes" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

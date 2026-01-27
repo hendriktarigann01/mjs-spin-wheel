@@ -8,12 +8,10 @@ const DB_BLOB_PATH = "prizes.db";
 
 const IS_LOCAL = !BLOB_TOKEN || !BLOB_TOKEN.startsWith("vercel_blob_rw_");
 
-// Use local path in development
 const getDbPath = () => {
   if (IS_LOCAL) {
     return path.join(process.cwd(), "data", "prizes.db");
   } else {
-    // In production (Vercel), use /tmp directory (writable)
     return path.join("/tmp", "prizes.db");
   }
 };

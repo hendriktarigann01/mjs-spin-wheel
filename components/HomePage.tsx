@@ -7,6 +7,17 @@ import { PrizeDisplay } from "@/components/PrizeDisplay";
 import { Modal } from "@/components/Modal";
 import { Prize } from "@/components/types/prize";
 
+interface Settings {
+  logo_left: string | null;
+  logo_right: string | null;
+  bg_color: string;
+  pattern_top: string | null;
+  pattern_bottom: string | null;
+  instagram: string;
+  whatsapp: string;
+  website: string;
+}
+
 export function HomePage() {
   const IS_PRODUCTION = process.env.NEXT_PUBLIC_MODE === "production";
   const [wheelPrizes, setWheelPrizes] = useState<Prize[]>([]);
@@ -14,30 +25,69 @@ export function HomePage() {
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [settings, setSettings] = useState<Settings | null>(null);
 
   useEffect(() => {
-    const loadPrizes = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/prizes");
-        const result = await response.json();
+        setLoadingProgress(0);
 
-        if (result.success && result.data.length > 0) {
-          const prizes = result.data;
+        const progressInterval = setInterval(() => {
+          setLoadingProgress((prev) => {
+            if (prev >= 90) return 90;
+            if (prev >= 70) return prev + 2;
+            if (prev >= 50) return prev + 5;
+            return prev + 10;
+          });
+        }, 150);
+
+        const [settingsRes, prizesRes] = await Promise.all([
+          fetch("/api/settings"),
+          fetch("/api/prizes"),
+        ]);
+
+        const settingsResult = await settingsRes.json();
+        const prizesResult = await prizesRes.json();
+
+        clearInterval(progressInterval);
+        setLoadingProgress(100);
+
+        if (settingsResult.success && settingsResult.data) {
+          setSettings(settingsResult.data);
+        }
+
+        if (prizesResult.success && prizesResult.data.length > 0) {
+          const prizes = prizesResult.data;
           setBasePrizes(prizes);
-
-          // Create wheel segments (4 repetitions)
           const wheelSegments = createWheelSegments(prizes);
           setWheelPrizes(wheelSegments);
         }
       } catch (error) {
-        console.error("Error loading prizes:", error);
+        console.error("Error loading data:", error);
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 300);
       }
     };
 
-    loadPrizes();
+    loadData();
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch("/api/settings");
+        const result = await response.json();
+        if (result.success && result.data) {
+          setSettings(result.data);
+        }
+      } catch (error) {
+        console.error("Error reloading settings:", error);
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const createWheelSegments = (prizes: Prize[]): Prize[] => {
@@ -61,46 +111,50 @@ export function HomePage() {
   const handleSpinComplete = async (prize: Prize) => {
     const originalId = prize.originalId || prize.id;
 
-    try {
-      // Decrease stock via API
-      const response = await fetch("/api/prizes/decrease-stock", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: originalId }),
-      });
-
-      if (response.ok) {
-        // Reload prizes to get updated stock
-        try {
-          setLoading(true);
-          const response = await fetch("/api/prizes");
-          const result = await response.json();
-
-          if (result.success && result.data.length > 0) {
-            const prizes = result.data;
-            setBasePrizes(prizes);
-
-            // Create wheel segments (4 repetitions)
-            const wheelSegments = createWheelSegments(prizes);
-            setWheelPrizes(wheelSegments);
-          }
-        } catch (error) {
-          console.error("Error loading prizes:", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    } catch (error) {
-      console.error("Error updating stock:", error);
-    }
+    const updatedBasePrizes = basePrizes.map((p) =>
+      p.id === originalId ? { ...p, stock: p.stock - 1 } : p,
+    );
+    setBasePrizes(updatedBasePrizes);
+    setWheelPrizes(createWheelSegments(updatedBasePrizes));
 
     setSelectedPrize(prize);
     setShowModal(true);
+
+    try {
+      await fetch("/api/prizes/decrease-stock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: originalId }),
+      });
+    } catch (error) {
+      console.error("Error updating stock:", error);
+    }
   };
 
-  if (basePrizes.length === 0) {
+  if (loading) {
+    return (
+      <div className="h-screen bg-[#17242B] flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <h6 className="block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-white">
+              Loading
+            </h6>
+            <h6 className="block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-white">
+              {loadingProgress}%
+            </h6>
+          </div>
+          <div className="flex-start flex h-2.5 w-full overflow-hidden rounded-full bg-gray-700 font-sans text-xs font-medium">
+            <div
+              className="flex items-center justify-center h-full overflow-hidden text-white break-all bg-white rounded-full transition-all duration-300"
+              style={{ width: `${loadingProgress}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!loading && basePrizes.length === 0) {
     return (
       <div className="h-screen bg-[#17242B] flex items-center justify-center">
         <div className="text-white text-center">
@@ -111,57 +165,85 @@ export function HomePage() {
     );
   }
 
-  return (
-    <div className="min-h-screen md:h-screen bg-[#17242B] relative overflow-hidden p-3 md:p-5">
-      {/* Pattern - Hidden on mobile */}
-      <div className="hidden md:block absolute top-0 left-0 w-100 h-100">
-        <Image src="/entry-top.webp" fill alt="top" />
+  if (!settings) {
+    return (
+      <div className="h-screen bg-[#17242B] flex items-center justify-center">
+        <div className="text-white text-center">
+          <p className="text-xl">Loading settings...</p>
+        </div>
       </div>
-      <div className="hidden md:block absolute bottom-0 right-0 w-100 h-100">
-        <Image src="/entry-bottom.webp" fill alt="bottom" />
-      </div>
+    );
+  }
 
-      {/* Main Content */}
+  return (
+    <div
+      className="min-h-screen md:h-screen relative overflow-hidden p-3 md:p-5"
+      style={{ backgroundColor: settings.bg_color }}
+    >
+      {settings.pattern_top && (
+        <div className="hidden md:block absolute top-0 left-0 w-100 h-100">
+          <Image
+            src={settings.pattern_top}
+            fill
+            alt="pattern top"
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+      )}
+      {settings.pattern_bottom && (
+        <div className="hidden md:block absolute bottom-0 right-0 w-100 h-100">
+          <Image
+            src={settings.pattern_bottom}
+            fill
+            alt="pattern bottom"
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+      )}
+
       <div className="relative z-10 flex flex-col h-full">
-        {/* Header */}
         <div className="w-full flex justify-between items-center mb-4 md:mb-0">
-          <div className="w-auto h-12 md:h-16">
-            <Image
-              src="/logo/tei_logo.png"
-              width={100}
-              height={150}
-              alt="tei_logo"
-              className="md:w-37.5"
-            />
-          </div>
-          <div className="w-auto h-12 md:h-16">
-            <Image
-              src="/logo/mjs_logo_text.png"
-              width={100}
-              height={150}
-              alt="mjs_logo"
-              className="md:w-37.5"
-            />
-          </div>
+          {settings.logo_left && (
+            <div className="w-auto h-12 md:h-16 relative">
+              <Image
+                src={settings.logo_left}
+                width={100}
+                height={48}
+                alt="logo_left"
+                className="h-12 md:h-16 w-auto object-contain"
+                unoptimized
+              />
+            </div>
+          )}
+          {settings.logo_right && (
+            <div className="w-auto h-12 md:h-16 relative">
+              <Image
+                src={settings.logo_right}
+                width={100}
+                height={48}
+                alt="logo_right"
+                className="h-12 md:h-16 w-auto object-contain"
+                unoptimized
+              />
+            </div>
+          )}
         </div>
 
-        {/* Main Wheel - Responsive Layout */}
         <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-0 md:gap-16 max-w-7xl mx-auto w-full">
-          {/* Spin Wheel */}
-          <div className="flex justify-center w-full md:flex-1 scale-60 sm:scale-95">
+          <div className="flex justify-center w-1/2 md:flex-1 scale-60 sm:scale-95">
             <SpinWheel
               prizes={wheelPrizes}
               onSpinComplete={handleSpinComplete}
             />
           </div>
 
-          {/* Prize Display - Below on mobile/tablet, side on desktop */}
           <div className="w-full md:w-64 relative scale-80 sm:scale-95 md:static bottom-30 md:bottom-0">
             <PrizeDisplay prizes={basePrizes} />
           </div>
         </div>
 
-        {/* Footer */}
         <div className="w-full flex flex-col md:flex-row justify-between gap-2 md:gap-4 text-xs md:text-base mt-4 md:mt-0">
           <div className="flex items-center gap-2 md:gap-4 justify-center md:justify-start">
             <Image
@@ -171,7 +253,7 @@ export function HomePage() {
               alt="instagram"
               className="md:w-5"
             />
-            <p className="text-white">@mjsolutionid</p>
+            <p className="text-white">{settings.instagram}</p>
           </div>
           <div className="flex items-center gap-2 md:gap-4 justify-center">
             <Image
@@ -181,7 +263,7 @@ export function HomePage() {
               alt="whatsapp"
               className="md:w-5"
             />
-            <p className="text-white">+628111122492</p>
+            <p className="text-white">{settings.whatsapp}</p>
           </div>
           <div className="flex items-center gap-2 md:gap-4 justify-center md:justify-end">
             <Image
@@ -191,20 +273,19 @@ export function HomePage() {
               alt="web"
               className="md:w-5"
             />
-            <p className="text-white">mjsolution.co.id</p>
+            <p className="text-white">{settings.website}</p>
           </div>
         </div>
       </div>
 
-      {/* Modal */}
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         prize={selectedPrize}
         isProduction={IS_PRODUCTION}
+        settings={settings}
       />
 
-      {/* Debug Info (Development only) */}
       {!IS_PRODUCTION && (
         <div className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs z-50 max-h-96 overflow-y-auto">
           <p className="font-bold mb-2">DEBUG MODE</p>
@@ -221,6 +302,8 @@ export function HomePage() {
               {p.name}: W={p.weight} S={p.stock}
             </p>
           ))}
+          <p className="font-bold mb-2 mt-4">Settings:</p>
+          <p className="text-[10px]">{JSON.stringify(settings, null, 2)}</p>
         </div>
       )}
     </div>

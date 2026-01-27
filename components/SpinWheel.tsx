@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Prize } from "@/components/types/prize";
+import Image from "next/image";
 
 interface SpinWheelProps {
   prizes: Prize[];
   onSpinComplete: (prize: Prize) => void;
 }
 
-const TOTAL_LIGHTS = 12;
 const SPIN_DURATION = 4000;
 const DEFAULT_SPINS = 5;
 
@@ -17,7 +17,7 @@ const selectPrizeFromWheel = (prizes: Prize[]): Prize => {
   const availablePrizes = prizes.filter((p) => p.stock > 0);
 
   if (availablePrizes.length === 0) {
-    return prizes[prizes.length - 1]; 
+    return prizes[prizes.length - 1];
   }
 
   const totalWeight = availablePrizes.reduce((sum, p) => sum + p.weight, 0);
@@ -36,7 +36,7 @@ const calculateWheelRotation = (
   currentRotation: number,
   prizeIndex: number,
   totalPrizes: number,
-  spins: number = 5
+  spins: number = 5,
 ): number => {
   const segmentAngle = 360 / totalPrizes;
   const segmentCenterAngle = prizeIndex * segmentAngle + segmentAngle / 2;
@@ -60,20 +60,8 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
 }) => {
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [activeLightIndex, setActiveLightIndex] = useState(0);
 
   const segmentAngle = 360 / prizes.length;
-
-  // Animate lights during spin
-  useEffect(() => {
-    if (!isSpinning) return;
-
-    const interval = setInterval(() => {
-      setActiveLightIndex((prev) => (prev + 1) % TOTAL_LIGHTS);
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [isSpinning]);
 
   const handleSpin = () => {
     if (isSpinning) return;
@@ -87,25 +75,21 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
       rotation,
       prizeIndex,
       prizes.length,
-      DEFAULT_SPINS
+      DEFAULT_SPINS,
     );
 
     setRotation(totalRotation);
 
     setTimeout(() => {
       setIsSpinning(false);
-      setActiveLightIndex(0);
       onSpinComplete(selectedPrize);
     }, SPIN_DURATION);
   };
 
   return (
     <div className="flex flex-col items-center gap-8">
-      <div className="relative">
-        <WheelHeader
-          isSpinning={isSpinning}
-          activeLightIndex={activeLightIndex}
-        />
+      <div className="relative scale-100 md:scale-90">
+        <WheelHeader />
 
         <div className="relative w-150 h-150">
           <WheelPointer />
@@ -125,81 +109,10 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
   );
 };
 
-// Lamp component
-const Lamp = ({ index, isActive }: { index: number; isActive: boolean }) => (
-  <div className="relative flex items-center justify-center">
-    {/* Glow Layer (Hanya muncul saat aktif) */}
-    {isActive && (
-      <div className="absolute inset-0 bg-[#FF842C] rounded-full blur-md opacity-60 animate-pulse" />
-    )}
-
-    <div
-      className={`
-        relative w-5 h-5 rounded-full transition-all duration-300 ease-in-out
-        border-b-2 border-black/20
-        ${
-          isActive
-            ? "bg-linear-to-tr from-[#E65100] via-[#FF842C] to-[#FFCC80] scale-110 shadow-[0_0_25px_5px_rgba(255,132,44,0.6)]"
-            : index % 2 === 0
-            ? "bg-linear-to-tr from-[#5E9A97] to-[#7DD3CE] brightness-75"
-            : "bg-linear-to-tr from-[#5E9A97] to-[#7DD3CE] brightness-75"
-        }
-      `}
-    >
-      {/* Efek Refleksi Kaca (Glossy) */}
-      <div className="absolute top-[15%] left-[15%] w-[30%] h-[30%] bg-white/30 rounded-full blur-[1px]" />
-    </div>
-  </div>
-);
-
-// Wheel header with animated lights
-const WheelHeader = ({
-  isSpinning,
-  activeLightIndex,
-}: {
-  isSpinning: boolean;
-  activeLightIndex: number;
-}) => (
-  <div className="z-20 mb-5">
-    <div className="relative p-2">
-      <div className="bg-brand-primary flex items-center justify-center border-10 border-brand-secondary w-96 relative z-10 mx-auto">
-        <p className="px-5 py-4 text-center text-2xl text-white font-bold uppercase tracking-widest">
-          SPIN N WIN
-        </p>
-      </div>
-
-      {/* Top lights */}
-      <div className="absolute top-0 left-0 w-full flex justify-around px-28">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <Lamp
-            key={`top-${i}`}
-            index={i}
-            isActive={isSpinning && activeLightIndex === i}
-          />
-        ))}
-      </div>
-
-      {/* Right light */}
-      <div className="absolute top-0 right-25 h-full flex flex-col justify-around py-4">
-        <Lamp index={5} isActive={isSpinning && activeLightIndex === 5} />
-      </div>
-
-      {/* Bottom lights */}
-      <div className="absolute bottom-0 left-0 w-full flex justify-around px-28">
-        {[10, 9, 8, 7, 6].map((i) => (
-          <Lamp
-            key={`bottom-${i}`}
-            index={i}
-            isActive={isSpinning && activeLightIndex === i}
-          />
-        ))}
-      </div>
-
-      {/* Left light */}
-      <div className="absolute top-0 left-25 h-full flex flex-col justify-around py-4">
-        <Lamp index={11} isActive={isSpinning && activeLightIndex === 11} />
-      </div>
-    </div>
+// Wheel header dengan GIF
+const WheelHeader = () => (
+  <div className="z-20 mb-5 flex justify-center">
+    <Image src="/heading-roulette.gif" alt="Spin N Win" width={100} height={100} className="w-120 h-auto" />
   </div>
 );
 

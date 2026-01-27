@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import PrizeService from "@/components/lib/db/service";
+import PrizeService from "@/components/lib/db/appService";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +11,7 @@ export async function GET() {
     console.error("Error fetching prizes:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch prizes" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

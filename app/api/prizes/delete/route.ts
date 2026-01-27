@@ -1,6 +1,6 @@
 // app/api/prizes/delete/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import PrizeService from "@/components/lib/db/service";
+import PrizeService from "@/components/lib/db/appService";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export async function DELETE(request: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { success: false, error: "Prize ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -26,14 +26,14 @@ export async function DELETE(request: NextRequest) {
     } else {
       return NextResponse.json(
         { success: false, error: "Prize not found or already deleted" },
-        { status: 404 }
+        { status: 404 },
       );
     }
   } catch (error) {
     console.error("Error deleting prize:", error);
     return NextResponse.json(
       { success: false, error: "Failed to delete prize" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

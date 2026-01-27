@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import PrizeService from "@/components/lib/db/service";
+import PrizeService from "@/components/lib/db/appService";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +17,13 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const prize = await PrizeService.createPrize({
       name,
-      image, 
+      image,
       weight: Number(weight),
       stock: Number(stock),
       color,
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating prize:", error);
     return NextResponse.json(
       { success: false, error: "Failed to create prize" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
