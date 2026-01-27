@@ -77,7 +77,7 @@ export const Modal: React.FC<ModalProps> = ({
               className="object-contain"
             />
           </div>
-          <p className="text-3xl font-bold text-white">
+          <p className="text-2xl font-bold text-white">
             {prize.name === "ZONK"
               ? "Coba lagi ya!🤚😜🤚"
               : `${prize.name}`}
