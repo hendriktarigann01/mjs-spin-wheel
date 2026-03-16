@@ -231,15 +231,15 @@ export function HomePage() {
           )}
         </div>
 
-        <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-0 md:gap-16 max-w-7xl mx-auto w-full">
-          <div className="flex justify-center w-1/2 md:flex-1 scale-60 sm:scale-95">
+        <div className="signage-layout flex-1 flex flex-col md:flex-row items-center justify-center gap-0 md:gap-16 max-w-7xl mx-auto w-full">
+          <div className="signage-wheel flex justify-center w-1/2 md:flex-1 scale-60 sm:scale-95">
             <SpinWheel
               prizes={wheelPrizes}
               onSpinComplete={handleSpinComplete}
             />
           </div>
 
-          <div className="w-full md:w-64 relative scale-80 sm:scale-95 md:static bottom-30 md:bottom-0">
+          <div className="signage-prize w-full md:w-64 relative scale-80 sm:scale-95 md:static bottom-30 md:bottom-0">
             <PrizeDisplay prizes={basePrizes} />
           </div>
         </div>

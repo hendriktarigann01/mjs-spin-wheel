@@ -15,7 +15,33 @@
   }
 }
 
-/* Hidden Arrow Number */
+@keyframes marqueeHorizontal {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Mobile & Digital Signage portrait (max 1080px wide) */
+@media (max-width: 1080px) {
+  .signage-layout {
+    flex-direction: column !important;
+  }
+
+  .signage-wheel {
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  .signage-prize {
+    width: 100% !important;
+    position: static !important;
+    bottom: auto !important;
+  }
+}
+
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;

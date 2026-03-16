@@ -11,7 +11,8 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
 
   return (
     <>
-      <div className="hidden md:block relative h-full max-h-170 overflow-hidden">
+      {/* Desktop landscape */}
+      <div className="prize-vertical relative h-full max-h-170 overflow-hidden">
         <div
           className="flex flex-col"
           style={{ animation: "marqueeVertical 20s linear infinite" }}
@@ -37,10 +38,10 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
         </div>
       </div>
 
-      {/* Mobile & Tablet version - Horizontal scroll */}
-      <div className="md:hidden relative w-full overflow-hidden py-4">
+      {/* Mobile & Digital Signage portrait */}
+      <div className="prize-horizontal relative w-full overflow-hidden py-4">
         <div
-          className="flex gap-6"
+          className="flex gap-8"
           style={{ animation: "marqueeHorizontal 20s linear infinite" }}
         >
           {duplicatedPrizes.map((prize, idx) => (
@@ -48,7 +49,7 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
               key={`${prize.id}-${idx}`}
               className="flex flex-col items-center gap-2 flex-shrink-0"
             >
-              <div className="relative w-20 h-20 bg-gray-700 rounded-lg overflow-hidden">
+              <div className="relative w-28 h-28 bg-gray-700 rounded-lg overflow-hidden">
                 <Image
                   src={prize.image}
                   alt={prize.name}
@@ -56,7 +57,7 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
                   className="object-contain"
                 />
               </div>
-              <h3 className="text-white font-bold text-sm text-center whitespace-nowrap">
+              <h3 className="text-white font-bold text-base text-center whitespace-nowrap">
                 {prize.name}
               </h3>
             </div>
@@ -65,6 +66,26 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
       </div>
 
       <style jsx>{`
+        /* Portrait: mobile & digital signage 1080x1920 */
+        @media (orientation: portrait) {
+          .prize-vertical {
+            display: none;
+          }
+          .prize-horizontal {
+            display: block;
+          }
+        }
+
+        /* Landscape: desktop */
+        @media (orientation: landscape) {
+          .prize-vertical {
+            display: block;
+          }
+          .prize-horizontal {
+            display: none;
+          }
+        }
+
         @keyframes marqueeVertical {
           0% {
             transform: translateY(0);
