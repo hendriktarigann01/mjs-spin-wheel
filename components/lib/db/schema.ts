@@ -43,7 +43,7 @@ export function initDatabase(): Database.Database {
   // Insert default settings if not exists
   db.exec(`
     INSERT OR IGNORE INTO settings (id, logo_left, logo_right, bg_color, pattern_top, pattern_bottom)
-    VALUES (1, '/logo/tei_logo.png', '/logo/mjs_logo_text.png', '#17242B', '/entry-top.webp', '/entry-bottom.webp')
+    VALUES (1, '/logo/mjs_logo_text.png', '/logo/arch_id.png', '#17242B', '/entry-top.webp', '/entry-bottom.webp')
   `);
 
   // Create trigger for updated_at prizes
