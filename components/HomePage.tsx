@@ -231,7 +231,7 @@ export function HomePage() {
           <div className="flex gap-10 items-center mb-4 md:mb-0">
             <div className="w-auto h-12 md:h-16 relative">
               <Image
-                src="/logo/arch_id.png"
+                src="/logo/mjs_logo_text.png"
                 width={100}
                 height={48}
                 alt="logo_left"
@@ -241,7 +241,7 @@ export function HomePage() {
             </div>
             <div className="w-auto h-12 md:h-16 relative">
               <Image
-                src="/logo/mjs_logo_text.png"
+                src="/logo/arch_id.png"
                 width={100}
                 height={48}
                 alt="logo_right"
