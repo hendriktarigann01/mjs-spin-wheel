@@ -23,6 +23,102 @@ const DEFAULT_SETTINGS: Settings = {
   website: "mjsolution.co.id",
 };
 
+// ── Reusable section card ─────────────────────────────────────
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative border border-brand-primary/30 bg-[#0a192f] p-6 space-y-4">
+      <div className="absolute inset-2 border border-dashed border-brand-primary/20 pointer-events-none" />
+      <h3 className="relative z-10 text-xs text-brand-light/60 uppercase tracking-widest">
+        {title}
+      </h3>
+      <div className="relative z-10">{children}</div>
+    </div>
+  );
+}
+
+// ── Reusable text input ───────────────────────────────────────
+
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs text-brand-light/60 uppercase tracking-widest">
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-4 py-2 bg-[#0D1F3C] border border-brand-primary/30 text-brand-light text-sm placeholder-brand-primary/30 focus:outline-none focus:border-brand-primary transition-colors"
+      />
+    </div>
+  );
+}
+
+// ── Reusable upload button ────────────────────────────────────
+
+function UploadButton({
+  label,
+  preview,
+  uploading,
+  onFile,
+}: {
+  label: string;
+  preview: string | null;
+  uploading: boolean;
+  onFile: (file: File) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-brand-light/60 uppercase tracking-widest">
+        {label}
+      </p>
+      {preview && (
+        <div className="p-3 border border-brand-primary/20 bg-[#0D1F3C]">
+          <img
+            src={preview}
+            alt={label}
+            className="max-h-16 mx-auto object-contain"
+          />
+        </div>
+      )}
+      <label className="flex items-center justify-center gap-2 px-4 py-2 border border-brand-primary/40 bg-brand-primary/5 text-xs text-brand-light/70 uppercase tracking-widest cursor-pointer hover:bg-brand-primary/10 hover:border-brand-primary transition-colors">
+        <Upload className="w-3 h-3" />
+        {uploading ? "Uploading..." : "Upload"}
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          disabled={uploading}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onFile(file);
+          }}
+        />
+      </label>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────
+
 export function CustomizationPanel() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -38,9 +134,7 @@ export function CustomizationPanel() {
     try {
       const response = await fetch("/api/settings");
       const result = await response.json();
-      if (result.success) {
-        setSettings(result.data);
-      }
+      if (result.success) setSettings(result.data);
     } catch (error) {
       console.error("Error loading settings:", error);
     } finally {
@@ -62,27 +156,17 @@ export function CustomizationPanel() {
         method: "POST",
         body: formData,
       });
-
       const result = await response.json();
       if (result.success) {
-        // Update state
         setSettings((prev) => ({ ...prev, [type]: result.url }));
-
-        // Auto-save to database
-        const saveResponse = await fetch("/api/settings", {
+        await fetch("/api/settings", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ [type]: result.url }),
         });
-
-        const saveResult = await saveResponse.json();
-        if (saveResult.success) {
-          alert("Image uploaded and saved successfully!");
-        }
       }
     } catch (error) {
       console.error("Error uploading image:", error);
-      alert("Failed to upload image");
     } finally {
       setUploading(null);
     }
@@ -91,63 +175,32 @@ export function CustomizationPanel() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      const response = await fetch("/api/settings", {
+      await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       });
-
-      const result = await response.json();
-      if (result.success) {
-        alert("Settings saved successfully!");
-      }
     } catch (error) {
       console.error("Error saving settings:", error);
-      alert("Failed to save settings");
     } finally {
       setSaving(false);
     }
   };
 
   const handleReset = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to reset all settings to default? This will delete all uploaded files. This action cannot be undone.",
-      )
-    ) {
+    if (!confirm("Reset all settings to default? This cannot be undone."))
       return;
-    }
-
     try {
       setResetting(true);
-
-      // First, delete all uploaded files
-      const deleteResponse = await fetch("/api/settings/delete-image", {
-        method: "DELETE",
-      });
-
-      const deleteResult = await deleteResponse.json();
-      if (!deleteResult.success) {
-        console.error("Failed to delete uploads:", deleteResult.error);
-      }
-
-      // Then reset settings to default
-      const response = await fetch("/api/settings", {
+      await fetch("/api/settings/delete-image", { method: "DELETE" });
+      await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(DEFAULT_SETTINGS),
       });
-
-      const result = await response.json();
-      if (result.success) {
-        setSettings(DEFAULT_SETTINGS);
-        alert(
-          "Settings reset to default successfully! All uploaded files have been deleted.",
-        );
-      }
+      setSettings(DEFAULT_SETTINGS);
     } catch (error) {
       console.error("Error resetting settings:", error);
-      alert("Failed to reset settings");
     } finally {
       setResetting(false);
     }
@@ -155,116 +208,67 @@ export function CustomizationPanel() {
 
   if (loading) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-gray-400">Loading settings...</p>
+      <div className="p-6 text-center text-xs text-brand-light/50 uppercase tracking-widest">
+        Loading settings...
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Customization</h2>
+        <h2 className="text-xl text-brand-light uppercase tracking-[0.3em]">
+          Customization
+        </h2>
         <div className="flex gap-3">
           <button
             onClick={handleReset}
             disabled={resetting}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 border border-brand-primary/40 bg-brand-primary/5 text-xs text-brand-light/70 uppercase tracking-widest hover:bg-brand-primary/10 hover:border-brand-primary transition-colors disabled:opacity-40"
           >
-            <RotateCcw className="w-4 h-4" />
-            {resetting ? "Resetting..." : "Reset to Default"}
+            <RotateCcw className="w-3 h-3" />
+            {resetting ? "Resetting..." : "Reset"}
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 border-2 border-brand-primary bg-brand-primary/10 text-xs text-brand-light uppercase tracking-widest hover:bg-brand-primary/20 transition-colors disabled:opacity-40"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-3 h-3" />
             {saving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>
 
-      {/* Logo Section */}
-      <div className="bg-gray-800 rounded-lg p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white mb-4">Logos</h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Logo Left */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Logo Left
-            </label>
-            {settings.logo_left && (
-              <div className="mb-2 p-4 bg-gray-700 rounded-lg">
-                <img
-                  src={settings.logo_left}
-                  alt="Logo Left"
-                  className="max-h-20 mx-auto"
-                />
-              </div>
-            )}
-            <label className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg cursor-pointer">
-              <Upload className="w-4 h-4" />
-              {uploading === "logo_left" ? "Uploading..." : "Upload Logo"}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={uploading === "logo_left"}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file, "logo_left");
-                }}
-              />
-            </label>
-          </div>
-
-          {/* Logo Right */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Logo Right
-            </label>
-            {settings.logo_right && (
-              <div className="mb-2 p-4 bg-gray-700 rounded-lg">
-                <img
-                  src={settings.logo_right}
-                  alt="Logo Right"
-                  className="max-h-20 mx-auto"
-                />
-              </div>
-            )}
-            <label className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg cursor-pointer">
-              <Upload className="w-4 h-4" />
-              {uploading === "logo_right" ? "Uploading..." : "Upload Logo"}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={uploading === "logo_right"}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file, "logo_right");
-                }}
-              />
-            </label>
-          </div>
+      {/* Logos */}
+      <Section title="Logos">
+        <div className="grid grid-cols-2 gap-6">
+          <UploadButton
+            label="Logo Left"
+            preview={settings.logo_left}
+            uploading={uploading === "logo_left"}
+            onFile={(f) => handleImageUpload(f, "logo_left")}
+          />
+          <UploadButton
+            label="Logo Right"
+            preview={settings.logo_right}
+            uploading={uploading === "logo_right"}
+            onFile={(f) => handleImageUpload(f, "logo_right")}
+          />
         </div>
-      </div>
+      </Section>
 
       {/* Background Color */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">
-          Background Color
-        </h3>
-        <div className="flex items-center gap-4">
+      <Section title="Background Color">
+        <div className="flex items-center gap-3">
           <input
             type="color"
             value={settings.bg_color}
             onChange={(e) =>
               setSettings((prev) => ({ ...prev, bg_color: e.target.value }))
             }
-            className="w-20 h-12 rounded cursor-pointer"
+            className="w-10 h-10 cursor-pointer border border-brand-primary/40 bg-transparent p-0"
           />
           <input
             type="text"
@@ -272,136 +276,53 @@ export function CustomizationPanel() {
             onChange={(e) =>
               setSettings((prev) => ({ ...prev, bg_color: e.target.value }))
             }
-            className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg"
+            className="flex-1 px-4 py-2 bg-[#0D1F3C] border border-brand-primary/30 text-brand-light text-sm focus:outline-none focus:border-brand-primary transition-colors"
             placeholder="#17242B"
           />
         </div>
-      </div>
+      </Section>
 
-      {/* Patterns */}
-      <div className="bg-gray-800 rounded-lg p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white mb-4">
-          Background Patterns
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Pattern Top */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Pattern Top
-            </label>
-            {settings.pattern_top && (
-              <div className="mb-2 p-4 bg-gray-700 rounded-lg">
-                <img
-                  src={settings.pattern_top}
-                  alt="Pattern Top"
-                  className="max-h-32 mx-auto"
-                />
-              </div>
-            )}
-            <label className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg cursor-pointer">
-              <Upload className="w-4 h-4" />
-              {uploading === "pattern_top" ? "Uploading..." : "Upload Pattern"}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={uploading === "pattern_top"}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file, "pattern_top");
-                }}
-              />
-            </label>
-          </div>
-
-          {/* Pattern Bottom */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Pattern Bottom
-            </label>
-            {settings.pattern_bottom && (
-              <div className="mb-2 p-4 bg-gray-700 rounded-lg">
-                <img
-                  src={settings.pattern_bottom}
-                  alt="Pattern Bottom"
-                  className="max-h-32 mx-auto"
-                />
-              </div>
-            )}
-            <label className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg cursor-pointer">
-              <Upload className="w-4 h-4" />
-              {uploading === "pattern_bottom"
-                ? "Uploading..."
-                : "Upload Pattern"}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={uploading === "pattern_bottom"}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleImageUpload(file, "pattern_bottom");
-                }}
-              />
-            </label>
-          </div>
+      {/* Background Patterns */}
+      <Section title="Background Patterns">
+        <div className="grid grid-cols-2 gap-6">
+          <UploadButton
+            label="Pattern Top"
+            preview={settings.pattern_top}
+            uploading={uploading === "pattern_top"}
+            onFile={(f) => handleImageUpload(f, "pattern_top")}
+          />
+          <UploadButton
+            label="Pattern Bottom"
+            preview={settings.pattern_bottom}
+            uploading={uploading === "pattern_bottom"}
+            onFile={(f) => handleImageUpload(f, "pattern_bottom")}
+          />
         </div>
-      </div>
+      </Section>
 
-      {/* Contact Info */}
-      <div className="bg-gray-800 rounded-lg p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white mb-4">
-          Contact Information
-        </h3>
-
+      {/* Contact Information */}
+      <Section title="Contact Information">
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Instagram
-            </label>
-            <input
-              type="text"
-              value={settings.instagram}
-              onChange={(e) =>
-                setSettings((prev) => ({ ...prev, instagram: e.target.value }))
-              }
-              className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
-              placeholder="@mjsolutionid"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              WhatsApp
-            </label>
-            <input
-              type="text"
-              value={settings.whatsapp}
-              onChange={(e) =>
-                setSettings((prev) => ({ ...prev, whatsapp: e.target.value }))
-              }
-              className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
-              placeholder="+628111122492"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Website
-            </label>
-            <input
-              type="text"
-              value={settings.website}
-              onChange={(e) =>
-                setSettings((prev) => ({ ...prev, website: e.target.value }))
-              }
-              className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg"
-              placeholder="mjsolution.co.id"
-            />
-          </div>
+          <Field
+            label="Instagram"
+            value={settings.instagram}
+            onChange={(v) => setSettings((prev) => ({ ...prev, instagram: v }))}
+            placeholder="@mjsolutionid"
+          />
+          <Field
+            label="WhatsApp"
+            value={settings.whatsapp}
+            onChange={(v) => setSettings((prev) => ({ ...prev, whatsapp: v }))}
+            placeholder="+628111122492"
+          />
+          <Field
+            label="Website"
+            value={settings.website}
+            onChange={(v) => setSettings((prev) => ({ ...prev, website: v }))}
+            placeholder="mjsolution.co.id"
+          />
         </div>
-      </div>
+      </Section>
     </div>
   );
 }

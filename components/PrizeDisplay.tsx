@@ -22,7 +22,7 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
               key={`${prize.id}-${idx}`}
               className="flex flex-col items-center gap-4 mb-12"
             >
-              <div className="relative w-32 h-32 bg-gray-700 rounded-lg overflow-hidden">
+              <div className="relative w-32 h-32 rounded-lg overflow-hidden">
                 <Image
                   src={prize.image}
                   alt={prize.name}
@@ -30,7 +30,7 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
                   className="object-contain"
                 />
               </div>
-              <h3 className="text-white font-bold text-xl text-center">
+              <h3 className="text-white text-xl text-center">
                 {prize.name}
               </h3>
             </div>
@@ -49,7 +49,7 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
               key={`${prize.id}-${idx}`}
               className="flex flex-col items-center gap-2 flex-shrink-0"
             >
-              <div className="relative w-28 h-28 bg-gray-700 rounded-lg overflow-hidden">
+              <div className="relative w-28 h-28 rounded-lg overflow-hidden">
                 <Image
                   src={prize.image}
                   alt={prize.name}
@@ -57,7 +57,7 @@ export const PrizeDisplay: React.FC<PrizeDisplayProps> = ({ prizes }) => {
                   className="object-contain"
                 />
               </div>
-              <h3 className="text-white font-bold text-base text-center whitespace-nowrap">
+              <h3 className="text-white text-base text-center whitespace-nowrap">
                 {prize.name}
               </h3>
             </div>

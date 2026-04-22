@@ -7,11 +7,12 @@ console.log("Seeding database...");
 db.prepare("DELETE FROM prizes").run();
 
 const prizes = [
-  ["KEY CHAIN", "/prize/keychain.png", 15, 60, "#36B0A9"],
-  ["NOTEBOOK", "/prize/notebook.png", 8, 25, "#277C79"],
-  ["MUG", "/prize/mug.png", 7, 20, "#36B0A9"],
-  ["HAND FAN", "/prize/fan.png", 20, 50, "#277C79"],
-  ["ZONK", "/prize/zonk.png", 50, 9999, "#36B0A9"],
+  ["KEY CHAIN", "/prize/keychain.png", 30, 30, "#25569E"],
+  ["NOTEBOOK", "/prize/notebook.png", 20, 20, "#0D1F3C"],
+  ["MUG", "/prize/mug.png", 16, 16, "#25569E"],
+  ["HAND FAN", "/prize/fan.png", 30, 30, "#0D1F3C"],
+  ["PEN", "/prize/pen.png", 25, 25, "#25569E"],
+  ["ZONK", "/prize/zonk.png", 479, 9999, "#0D1F3C"],
 ];
 
 const insert = db.prepare(`
@@ -26,7 +27,7 @@ for (const prize of prizes) {
 console.log("Database seeded successfully!");
 console.log(
   "Total prizes:",
-  db.prepare("SELECT COUNT(*) as count FROM prizes").get()
+  db.prepare("SELECT COUNT(*) as count FROM prizes").get(),
 );
 
 db.close();

@@ -11,8 +11,6 @@ interface Settings {
   logo_left: string | null;
   logo_right: string | null;
   bg_color: string;
-  pattern_top: string | null;
-  pattern_bottom: string | null;
   instagram: string;
   whatsapp: string;
   website: string;
@@ -133,21 +131,33 @@ export function HomePage() {
 
   if (loading) {
     return (
-      <div className="h-screen bg-[#17242B] flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <h6 className="block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-white">
+      <div className="relative h-screen bg-[#0D1F3C] flex items-center justify-center p-4 overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, var(--brand-primary) 1px, transparent 1px),
+              linear-gradient(to bottom, var(--brand-primary) 1px, transparent 1px)
+            `,
+            backgroundSize: "45px 45px",
+            opacity: 0.2,
+          }}
+        />
+
+        <div className="relative z-10 w-full max-w-md space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-xs text-brand-primary/60 uppercase tracking-widest">
               Loading
-            </h6>
-            <h6 className="block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-white">
+            </span>
+            <span className="font-mono text-xs text-brand-primary uppercase tracking-widest">
               {loadingProgress}%
-            </h6>
+            </span>
           </div>
-          <div className="flex-start flex h-2.5 w-full overflow-hidden rounded-full bg-gray-700 font-sans text-xs font-medium">
+          <div className="w-full h-[2px] bg-brand-primary/20">
             <div
-              className="flex items-center justify-center h-full overflow-hidden text-white break-all bg-white rounded-full transition-all duration-300"
+              className="h-full bg-brand-primary transition-all duration-300"
               style={{ width: `${loadingProgress}%` }}
-            ></div>
+            />
           </div>
         </div>
       </div>
@@ -156,10 +166,25 @@ export function HomePage() {
 
   if (!loading && basePrizes.length === 0) {
     return (
-      <div className="h-screen bg-[#17242B] flex items-center justify-center">
-        <div className="text-white text-center">
-          <h2 className="text-2xl font-bold mb-2">No Prizes Available</h2>
-          <p className="text-gray-400">Please contact admin to add prizes</p>
+      <div className="relative h-screen bg-[#0D1F3C] flex items-center justify-center overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, var(--brand-primary) 1px, transparent 1px),
+              linear-gradient(to bottom, var(--brand-primary) 1px, transparent 1px)
+            `,
+            backgroundSize: "45px 45px",
+            opacity: 0.2,
+          }}
+        />
+        <div className="relative z-10 text-center space-y-2">
+          <h2 className="font-mono text-xl text-brand-primary uppercase tracking-[0.3em]">
+            No Prizes Available
+          </h2>
+          <p className="font-mono text-xs text-brand-primary/50 uppercase tracking-widest">
+            Please contact admin to add prizes
+          </p>
         </div>
       </div>
     );
@@ -167,10 +192,21 @@ export function HomePage() {
 
   if (!settings) {
     return (
-      <div className="h-screen bg-[#17242B] flex items-center justify-center">
-        <div className="text-white text-center">
-          <p className="text-xl">Loading settings...</p>
-        </div>
+      <div className="relative h-screen bg-[#0D1F3C] flex items-center justify-center overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, var(--brand-primary) 1px, transparent 1px),
+              linear-gradient(to bottom, var(--brand-primary) 1px, transparent 1px)
+            `,
+            backgroundSize: "45px 45px",
+            opacity: 0.2,
+          }}
+        />
+        <p className="relative z-10 font-mono text-xs text-brand-primary/60 uppercase tracking-widest">
+          Loading settings...
+        </p>
       </div>
     );
   }
@@ -180,31 +216,15 @@ export function HomePage() {
       className="min-h-screen md:h-screen relative overflow-hidden p-3 md:p-5"
       style={{ backgroundColor: settings.bg_color }}
     >
-      {settings.pattern_top && (
-        <div className="hidden md:block absolute top-0 left-0 w-100 h-100">
-          <Image
-            src={settings.pattern_top}
-            fill
-            alt="pattern top"
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-      )}
-      {settings.pattern_bottom && (
-        <div className="hidden md:block absolute bottom-0 right-0 w-100 h-100">
-          <Image
-            src={settings.pattern_bottom}
-            fill
-            alt="pattern bottom"
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-      )}
+      {/* Grid background */}
+      <div
+        className="absolute inset-0 h-full w-full 
+        bg-[linear-gradient(to_right,#002965_1px,transparent_1px),linear-gradient(to_bottom,#002965_1px,transparent_1px)] 
+        bg-[size:45px_45px]"
+      ></div>
 
       <div className="relative z-10 flex flex-col h-full">
-        <div className="w-full flex justify-between items-center mb-4 md:mb-0">
+        <div className="w-full flex gap-10 items-center mb-4 md:mb-0">
           {settings.logo_left && (
             <div className="w-auto h-12 md:h-16 relative">
               <Image
@@ -288,21 +308,21 @@ export function HomePage() {
 
       {!IS_PRODUCTION && (
         <div className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs z-50 max-h-96 overflow-y-auto">
-          <p className="font-bold mb-2">DEBUG MODE</p>
-          <p className="font-bold mb-1">Wheel: {wheelPrizes.length} segments</p>
+          <p className="mb-2">DEBUG MODE</p>
+          <p className="mb-1">Wheel: {wheelPrizes.length} segments</p>
           <p className="text-[10px] mb-2">
             Order:{" "}
             {wheelPrizes
               .map((p, i) => `${i + 1}:${p.name.substring(0, 3)}`)
               .join(" ")}
           </p>
-          <p className="font-bold mb-2">Base Prizes:</p>
+          <p className="mb-2">Base Prizes:</p>
           {basePrizes.map((p) => (
             <p key={p.id}>
               {p.name}: W={p.weight} S={p.stock}
             </p>
           ))}
-          <p className="font-bold mb-2 mt-4">Settings:</p>
+          <p className="mb-2 mt-4">Settings:</p>
           <p className="text-[10px]">{JSON.stringify(settings, null, 2)}</p>
         </div>
       )}

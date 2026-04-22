@@ -12,7 +12,6 @@ interface SpinWheelProps {
 const SPIN_DURATION = 4000;
 const DEFAULT_SPINS = 5;
 
-// Prize selection logic dengan weighted random
 const selectPrizeFromWheel = (prizes: Prize[]): Prize => {
   const availablePrizes = prizes.filter((p) => p.stock > 0);
 
@@ -112,14 +111,20 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
 // Wheel header dengan GIF
 const WheelHeader = () => (
   <div className="z-20 mb-5 flex justify-center">
-    <Image src="/heading-roulette.gif" alt="Spin N Win" width={100} height={100} className="w-120 h-auto" />
+    <Image
+      src="/heading-roulette.gif"
+      alt="Spin N Win"
+      width={100}
+      height={100}
+      className="w-120 h-auto"
+    />
   </div>
 );
 
 // Pointer (arrow) component
 const WheelPointer = () => (
   <div className="absolute top-1/2 right-0 transform rotate-90 -translate-y-6 z-20">
-    <div className="w-0 h-0 border-l-20 border-r-20 border-t-40 border-l-transparent border-r-transparent border-t-red-400" />
+    <div className="w-0 h-0 border-l-20 border-r-20 border-t-40 border-l-transparent border-r-transparent border-t-brand-light" />
   </div>
 );
 
@@ -185,7 +190,6 @@ const WheelSegments = ({
               y={imgY}
               fill="white"
               fontSize="14"
-              fontWeight="bold"
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(${imgRotation + 270}, ${imgX}, ${imgY})`}
@@ -212,13 +216,11 @@ const SpinButton = ({
       cx="250"
       cy="250"
       r="40"
-      fill="#7DD3CE"
+      fill="#25569E"
       stroke="white"
       strokeWidth="4"
       className={`${
-        isSpinning
-          ? "cursor-not-allowed opacity-50"
-          : "cursor-pointer hover:fill-[#5FC4BF]"
+        isSpinning ? "cursor-not-allowed opacity-50" : "cursor-pointer"
       } transition-all`}
       onClick={onSpin}
       style={{ pointerEvents: isSpinning ? "none" : "auto" }}
@@ -229,7 +231,6 @@ const SpinButton = ({
       y="255"
       fill="white"
       fontSize="18"
-      fontWeight="bold"
       textAnchor="middle"
       className={`${isSpinning ? "cursor-not-allowed" : "cursor-pointer"}`}
       onClick={onSpin}

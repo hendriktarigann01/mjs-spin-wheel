@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { initDatabase } from "@/components/lib/db/schema";
 import { blobSync } from "@/components/lib/db/blobSync";
@@ -14,7 +13,7 @@ export async function POST(request: Request) {
     if (secret !== SEED_SECRET) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -28,18 +27,18 @@ export async function POST(request: Request) {
       if (count.count > 0) {
         db.close();
         throw new Error(
-          "Database already seeded. Please delete existing data first."
+          "Database already seeded. Please delete existing data first.",
         );
       }
 
       console.log("Seeding database...");
 
       const prizes = [
-        ["KEY CHAIN", "/prize/keychain.png", 15, 60, "#36B0A9"],
-        ["NOTEBOOK", "/prize/notebook.png", 8, 25, "#277C79"],
-        ["MUG", "/prize/mug.png", 7, 20, "#36B0A9"],
-        ["HAND FAN", "/prize/fan.png", 20, 50, "#277C79"],
-        ["ZONK", "/prize/zonk.png", 50, 9999, "#36B0A9"],
+        ["KEY CHAIN", "/prize/keychain.png", 15, 60, "#25569E"],
+        ["NOTEBOOK", "/prize/notebook.png", 8, 25, "#0D1F3C"],
+        ["MUG", "/prize/mug.png", 7, 20, "#25569E"],
+        ["HAND FAN", "/prize/fan.png", 20, 50, "#0D1F3C"],
+        ["ZONK", "/prize/zonk.png", 50, 9999, "#25569E"],
       ];
 
       const insert = db.prepare(`
@@ -60,7 +59,7 @@ export async function POST(request: Request) {
         .get() as { count: number };
       console.log(
         "Database seeded successfully! Total prizes:",
-        finalCount.count
+        finalCount.count,
       );
 
       db.close();
@@ -71,12 +70,12 @@ export async function POST(request: Request) {
       message: "Database seeded successfully",
       prizes: 5,
     });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error seeding database:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to seed database" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -89,7 +88,7 @@ export async function DELETE(request: Request) {
     if (secret !== SEED_SECRET) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -107,12 +106,12 @@ export async function DELETE(request: Request) {
       success: true,
       message: "All prizes deleted successfully",
     });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error clearing database:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to clear database" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

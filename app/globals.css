@@ -1,9 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+body {
+  font-family: "Courier New", Courier;
+}
+
 @theme inline {
-  --color-brand-primary: #36b0a9;
-  --color-brand-secondary: #277c79;
+  --color-brand-primary: #25569e;
+  --color-brand-light: #5ba4f5;
+  --color-brand-secondary: #0d1f3c;
 }
 
 @keyframes marqueeVertical {

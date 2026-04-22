@@ -44,7 +44,7 @@ export function Login({ onLogin }: LoginProps) {
               alt="logo"
             />
           </div>
-          <h1 className="text-3xl font-bold text-white drop-shadow-sm">
+          <h1 className="text-3xl text-white drop-shadow-sm">
             Admin Login
           </h1>
           <p className="text-white/80 mt-2 font-medium">Spin Wheel</p>
@@ -52,7 +52,7 @@ export function Login({ onLogin }: LoginProps) {
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-white/90 mb-2 ml-1">
+            <label className="block text-sm text-white/90 mb-2 ml-1">
               Username
             </label>
             <input
@@ -65,7 +65,7 @@ export function Login({ onLogin }: LoginProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-white/90 mb-2 ml-1">
+            <label className="block text-sm text-white/90 mb-2 ml-1">
               Password
             </label>
             <div className="relative">
@@ -99,7 +99,7 @@ export function Login({ onLogin }: LoginProps) {
 
           <button
             onClick={handleLogin}
-            className="w-full bg-white/90 hover:bg-white text-teal-600 font-bold py-3 rounded-xl transition-all duration-300 shadow-lg active:scale-95"
+            className="w-full bg-white/90 hover:bg-white text-teal-600 py-3 rounded-xl transition-all duration-300 shadow-lg active:scale-95"
           >
             Login
           </button>

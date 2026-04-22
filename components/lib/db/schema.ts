@@ -17,7 +17,7 @@ export function initDatabase(): Database.Database {
       image TEXT NOT NULL,
       weight INTEGER NOT NULL DEFAULT 0,
       stock INTEGER NOT NULL DEFAULT 0,
-      color TEXT NOT NULL DEFAULT '#36B0A9',
+      color TEXT NOT NULL DEFAULT '#25569E',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
