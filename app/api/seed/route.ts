@@ -34,11 +34,11 @@ export async function POST(request: Request) {
       console.log("Seeding database...");
 
       const prizes = [
-        ["KEY CHAIN", "/prize/keychain.png", 15, 60, "#25569E"],
-        ["NOTEBOOK", "/prize/notebook.png", 8, 25, "#0D1F3C"],
-        ["MUG", "/prize/mug.png", 7, 20, "#25569E"],
-        ["HAND FAN", "/prize/fan.png", 20, 50, "#0D1F3C"],
-        ["ZONK", "/prize/zonk.png", 50, 9999, "#25569E"],
+        ["KEY CHAIN", "/prize/keychain.png", 65, 65, "#25569E"],
+        ["NOTEBOOK", "/prize/notebook.png", 20, 20, "#0D1F3C"],
+        ["MUG", "/prize/mug.png", 16, 16, "#25569E"],
+        ["HAND FAN", "/prize/fan.png", 6, 6, "#0D1F3C"],
+        ["PEN", "/prize/pen.png", 30, 0, "#25569E"],
       ];
 
       const insert = db.prepare(`

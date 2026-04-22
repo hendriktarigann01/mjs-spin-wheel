@@ -13,8 +13,8 @@ interface Settings {
 }
 
 const DEFAULT_SETTINGS: Settings = {
-  logo_left: "/logo/tei_logo.png",
-  logo_right: "/logo/mjs_logo_text.png",
+  logo_left: "/logo/mjs_logo_text.png",
+  logo_right: "/logo/arch_id.png",
   bg_color: "#17242B",
   pattern_top: "/entry-top.webp",
   pattern_bottom: "/entry-bottom.webp",
