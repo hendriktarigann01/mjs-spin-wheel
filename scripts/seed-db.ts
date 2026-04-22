@@ -1,22 +1,18 @@
 import Database from "better-sqlite3";
 import { blobSync } from "@/components/lib/db/blobSync";
 import path from "path";
-import fs from "fs";
 
 async function main() {
+  const dbPath = path.join(process.cwd(), "tmp", "prizes.db");
+  blobSync.forceDbPath(dbPath); 
+
+  console.log("DB path:", dbPath);
+
   await blobSync.downloadFromBlob();
-
-  const dbPath = blobSync.getDbPath();
-
-  const dbDir = path.dirname(dbPath);
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
-  }
 
   const db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
 
-  console.log("Seeding database to:", dbPath);
   console.log("Seeding database...");
 
   db.prepare("DELETE FROM prizes").run();
@@ -26,7 +22,7 @@ async function main() {
     ["NOTEBOOK", "/prize/notebook.png", 20, 20, "#0D1F3C"],
     ["MUG", "/prize/mug.png", 16, 16, "#25569E"],
     ["HAND FAN", "/prize/fan.png", 6, 6, "#0D1F3C"],
-    ["PEN", "/prize/pen.png", 30, 0, "#25569E"],
+    ["PULPEN", "/prize/pulpen.png", 30, 0, "#25569E"],
   ];
 
   const insert = db.prepare(`
@@ -46,8 +42,11 @@ async function main() {
 
   db.close();
 
-  const uploaded = await blobSync.uploadToBlob();
-  console.log("Blob upload:", uploaded ? "✅ SUCCESS" : "❌ FAILED");
+ const uploaded = await blobSync.uploadToBlob();
+  console.log(
+    "Blob upload:",
+    uploaded ? "SUCCESS" : "SKIPPED (local)",
+  );
 }
 
 main().catch(console.error);
