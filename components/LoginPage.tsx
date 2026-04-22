@@ -26,7 +26,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen relative bg-[#17242B] flex items-center justify-center p-4">
+    <div className="min-h-screen relative bg-[#0D1F3C] flex items-center justify-center p-4">
       <div className="hidden md:block absolute top-0 left-0 w-100 h-100">
         <Image src="/entry-top.webp" fill alt="top" />
       </div>
@@ -44,9 +44,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               alt="logo"
             />
           </div>
-          <h1 className="text-3xl text-white drop-shadow-sm">
-            Admin Login
-          </h1>
+          <h1 className="text-3xl text-white drop-shadow-sm">Admin Login</h1>
           <p className="text-white/80 mt-2 font-medium">Spin Wheel</p>
         </div>
 

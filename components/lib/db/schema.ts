@@ -29,7 +29,7 @@ export function initDatabase(): Database.Database {
       id INTEGER PRIMARY KEY CHECK (id = 1),
       logo_left TEXT,
       logo_right TEXT,
-      bg_color TEXT DEFAULT '#17242B',
+      bg_color TEXT DEFAULT '#0D1F3C',
       pattern_top TEXT,
       pattern_bottom TEXT,
       instagram TEXT DEFAULT '@mjsolutionid',
@@ -43,7 +43,7 @@ export function initDatabase(): Database.Database {
   // Insert default settings if not exists
   db.exec(`
     INSERT OR IGNORE INTO settings (id, logo_left, logo_right, bg_color, pattern_top, pattern_bottom)
-    VALUES (1, '/logo/mjs_logo_text.png', '/logo/arch_id.png', '#17242B', '/entry-top.webp', '/entry-bottom.webp')
+    VALUES (1, '/logo/mjs_logo_text.png', '/logo/arch_id.png', '#0D1F3C', '/entry-top.webp', '/entry-bottom.webp')
   `);
 
   // Create trigger for updated_at prizes

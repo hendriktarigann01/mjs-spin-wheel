@@ -216,8 +216,8 @@ export function HomePage() {
 
   return (
     <div
-      className="min-h-screen md:h-screen relative overflow-hidden p-3 md:p-5"
-      style={{ backgroundColor: settings.bg_color }}
+      className="min-h-screen md:h-screen relative overflow-hidden p-3 md:p-5 bg-[#0D1F3C]"
+      // style={{ backgroundColor: settings.bg_color }}
     >
       {/* Grid background */}
       <div
@@ -229,30 +229,26 @@ export function HomePage() {
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex justify-between">
           <div className="flex gap-10 items-center mb-4 md:mb-0">
-            {settings.logo_left && (
-              <div className="w-auto h-12 md:h-16 relative">
-                <Image
-                  src={settings.logo_left}
-                  width={100}
-                  height={48}
-                  alt="logo_left"
-                  className="h-12 md:h-16 w-auto object-contain"
-                  unoptimized
-                />
-              </div>
-            )}
-            {settings.logo_right && (
-              <div className="w-auto h-12 md:h-16 relative">
-                <Image
-                  src={settings.logo_right}
-                  width={100}
-                  height={48}
-                  alt="logo_right"
-                  className="h-12 md:h-16 w-auto object-contain"
-                  unoptimized
-                />
-              </div>
-            )}
+            <div className="w-auto h-12 md:h-16 relative">
+              <Image
+                src="/logo/arch_id.png"
+                width={100}
+                height={48}
+                alt="logo_left"
+                className="h-12 md:h-16 w-auto object-contain"
+                unoptimized
+              />
+            </div>
+            <div className="w-auto h-12 md:h-16 relative">
+              <Image
+                src="/logo/mjs_logo_text.png"
+                width={100}
+                height={48}
+                alt="logo_right"
+                className="h-12 md:h-16 w-auto object-contain"
+                unoptimized
+              />
+            </div>
           </div>
           <div className="mb-4 md:mb-0">
             <button

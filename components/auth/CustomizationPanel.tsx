@@ -15,7 +15,7 @@ interface Settings {
 const DEFAULT_SETTINGS: Settings = {
   logo_left: "/logo/mjs_logo_text.png",
   logo_right: "/logo/arch_id.png",
-  bg_color: "#17242B",
+  bg_color: "#0D1F3C",
   pattern_top: "/entry-top.webp",
   pattern_bottom: "/entry-bottom.webp",
   instagram: "@mjsolutionid",
@@ -277,7 +277,7 @@ export function CustomizationPanel() {
               setSettings((prev) => ({ ...prev, bg_color: e.target.value }))
             }
             className="flex-1 px-4 py-2 bg-[#0D1F3C] border border-brand-primary/30 text-brand-light text-sm focus:outline-none focus:border-brand-primary transition-colors"
-            placeholder="#17242B"
+            placeholder="#0D1F3C"
           />
         </div>
       </Section>
