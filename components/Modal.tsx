@@ -3,23 +3,23 @@ import Image from "next/image";
 import { Prize } from "@/components/types/prize";
 import { triggerConfetti } from "@/components/utils/confetti";
 
-interface Settings {
-  logo_left: string | null;
-  logo_right: string | null;
-  bg_color: string;
-  pattern_top: string | null;
-  pattern_bottom: string | null;
-  instagram: string;
-  whatsapp: string;
-  website: string;
-}
+// interface Settings {
+//   logo_left: string | null;
+//   logo_right: string | null;
+//   bg_color: string;
+//   pattern_top: string | null;
+//   pattern_bottom: string | null;
+//   instagram: string;
+//   whatsapp: string;
+//   website: string;
+// }
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   prize: Prize | null;
   isProduction: boolean;
-  settings: Settings | null;
+  // settings: Settings | null;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -27,7 +27,7 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   prize,
   isProduction,
-  settings,
+  // settings,
 }) => {
   useEffect(() => {
     if (isOpen && prize && prize.name !== "ZONK") {
@@ -35,7 +35,12 @@ export const Modal: React.FC<ModalProps> = ({
     }
   }, [isOpen, prize]);
 
-  if (!isOpen || !prize || !settings) return null;
+  if (
+    !isOpen ||
+    !prize
+    // || !settings
+  )
+    return null;
 
   const isZonk = prize.name === "ZONK";
 
@@ -83,9 +88,7 @@ export const Modal: React.FC<ModalProps> = ({
               className="relative mt-2 w-full py-3 border-2 border-brand-primary bg-[#0a192f] text-sm text-brand-primary uppercase tracking-widest transition-colors"
             >
               <div className="absolute inset-1 border-2 border-dashed border-brand-primary/50 pointer-events-none" />
-              <span className="relative">
-               Spin Again
-              </span>
+              <span className="relative">Spin Again</span>
             </button>
           </div>
         </div>

@@ -7,12 +7,11 @@ console.log("Seeding database...");
 db.prepare("DELETE FROM prizes").run();
 
 const prizes = [
-  ["KEY CHAIN", "/prize/keychain.png", 30, 30, "#25569E"],
+  ["KEY CHAIN", "/prize/keychain.png", 65, 65, "#25569E"],
   ["NOTEBOOK", "/prize/notebook.png", 20, 20, "#0D1F3C"],
   ["MUG", "/prize/mug.png", 16, 16, "#25569E"],
-  ["HAND FAN", "/prize/fan.png", 30, 30, "#0D1F3C"],
-  ["PEN", "/prize/pen.png", 25, 25, "#25569E"],
-  ["ZONK", "/prize/zonk.png", 479, 9999, "#0D1F3C"],
+  ["HAND FAN", "/prize/fan.png", 6, 6, "#0D1F3C"],
+  ["PULPEN", "/prize/pulpen.png", 30, 0, "#25569E"],
 ];
 
 const insert = db.prepare(`

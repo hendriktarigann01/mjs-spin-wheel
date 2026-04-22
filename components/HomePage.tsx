@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { SpinWheel } from "@/components/SpinWheel";
 import { PrizeDisplay } from "@/components/PrizeDisplay";
 import { Modal } from "@/components/Modal";
 import { Prize } from "@/components/types/prize";
+import { Undo2 } from "lucide-react";
 
 interface Settings {
   logo_left: string | null;
@@ -25,7 +27,8 @@ export function HomePage() {
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [settings, setSettings] = useState<Settings | null>(null);
-
+  const router = useRouter();
+  
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -224,31 +227,41 @@ export function HomePage() {
       ></div>
 
       <div className="relative z-10 flex flex-col h-full">
-        <div className="w-full flex gap-10 items-center mb-4 md:mb-0">
-          {settings.logo_left && (
-            <div className="w-auto h-12 md:h-16 relative">
-              <Image
-                src={settings.logo_left}
-                width={100}
-                height={48}
-                alt="logo_left"
-                className="h-12 md:h-16 w-auto object-contain"
-                unoptimized
-              />
-            </div>
-          )}
-          {settings.logo_right && (
-            <div className="w-auto h-12 md:h-16 relative">
-              <Image
-                src={settings.logo_right}
-                width={100}
-                height={48}
-                alt="logo_right"
-                className="h-12 md:h-16 w-auto object-contain"
-                unoptimized
-              />
-            </div>
-          )}
+        <div className="flex justify-between">
+          <div className="flex gap-10 items-center mb-4 md:mb-0">
+            {settings.logo_left && (
+              <div className="w-auto h-12 md:h-16 relative">
+                <Image
+                  src={settings.logo_left}
+                  width={100}
+                  height={48}
+                  alt="logo_left"
+                  className="h-12 md:h-16 w-auto object-contain"
+                  unoptimized
+                />
+              </div>
+            )}
+            {settings.logo_right && (
+              <div className="w-auto h-12 md:h-16 relative">
+                <Image
+                  src={settings.logo_right}
+                  width={100}
+                  height={48}
+                  alt="logo_right"
+                  className="h-12 md:h-16 w-auto object-contain"
+                  unoptimized
+                />
+              </div>
+            )}
+          </div>
+          <div className="mb-4 md:mb-0">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center relative cursor-pointer w-16 h-16 rounded-full bg-white/30"
+            >
+              <Undo2 className="text-white" />
+            </button>
+          </div>
         </div>
 
         <div className="signage-layout flex-1 flex flex-col md:flex-row items-center justify-center gap-0 md:gap-16 max-w-7xl mx-auto w-full">
@@ -303,7 +316,7 @@ export function HomePage() {
         onClose={() => setShowModal(false)}
         prize={selectedPrize}
         isProduction={IS_PRODUCTION}
-        settings={settings}
+        // settings={settings}
       />
 
       {!IS_PRODUCTION && (
