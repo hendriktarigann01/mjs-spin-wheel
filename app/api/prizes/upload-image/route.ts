@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put } from "@vercel/blob";
+import { StorageService } from "@/components/lib/db/storageService";
 
 export const dynamic = "force-dynamic";
+
+const IS_LOCAL = process.env.NODE_ENV === "development";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +13,7 @@ export async function POST(request: NextRequest) {
     if (!file) {
       return NextResponse.json(
         { success: false, error: "No file uploaded" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -23,7 +25,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Invalid file type. Only JPG, PNG, and WebP are allowed",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,31 +34,39 @@ export async function POST(request: NextRequest) {
     if (file.size > maxSize) {
       return NextResponse.json(
         { success: false, error: "File too large. Maximum size is 5MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Generate unique filename
+    import path from "path";
     const timestamp = Date.now();
     const extension = file.name.split(".").pop();
-    const filename = `prizes/prize-${timestamp}.${extension}`;
+    const filename = `prize-${timestamp}.${extension}`;
 
-    // Upload to Vercel Blob
-    const blob = await put(filename, file, {
-      access: "public",
-      token: process.env.BLOB_READ_WRITE_TOKEN!,
-    });
-
-    return NextResponse.json({
-      success: true,
-      url: blob.url,
-      filename: filename,
-    });
+    if (IS_LOCAL) {
+      const uploadDir = path.join(process.cwd(), "public", "uploads/prizes");
+      await import("fs").then((fs) => {
+        if (!fs.existsSync(uploadDir))
+          fs.mkdirSync(uploadDir, { recursive: true });
+      });
+      await import("fs/promises").then(({ writeFile }) =>
+        writeFile(
+          path.join(uploadDir, filename),
+          Buffer.from(await file.arrayBuffer()),
+        ),
+      );
+      const url = `/uploads/prizes/${filename}`;
+      return NextResponse.json({ success: true, url, filename });
+    } else {
+      const result = await StorageService.upload("prizes", filename, file);
+      return NextResponse.json({ success: true, url: result.url, filename });
+    }
   } catch (error) {
     console.error("Error uploading image:", error);
     return NextResponse.json(
       { success: false, error: "Failed to upload image" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

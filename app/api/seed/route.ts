@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { initDatabase } from "@/components/lib/db/schema";
-import { blobSync } from "@/components/lib/db/blobSync";
+import PrizeService from "@/components/lib/db/appService";
+import SettingsService from "@/components/lib/db/settingService";
 
 export const dynamic = "force-dynamic";
 
@@ -17,53 +17,54 @@ export async function POST(request: Request) {
       );
     }
 
-    await blobSync.withSync(async () => {
-      const db = initDatabase();
+    // Clear existing data
+    await PrizeService.deletePrize(1);
+    await PrizeService.deletePrize(2);
+    await PrizeService.deletePrize(3);
+    await PrizeService.deletePrize(4);
+    await PrizeService.deletePrize(5);
 
-      const count = db
-        .prepare("SELECT COUNT(*) as count FROM prizes")
-        .get() as { count: number };
+    // Seed prizes
+    console.log("Seeding prizes...");
+    await Promise.all([
+      PrizeService.createPrize({
+        name: "KEY CHAIN",
+        image: "/prize/keychain.png",
+        weight: 65,
+        stock: 65,
+        color: "#25569E",
+      }),
+      PrizeService.createPrize({
+        name: "NOTEBOOK",
+        image: "/prize/notebook.png",
+        weight: 20,
+        stock: 20,
+        color: "#0D1F3C",
+      }),
+      PrizeService.createPrize({
+        name: "MUG",
+        image: "/prize/mug.png",
+        weight: 16,
+        stock: 16,
+        color: "#25569E",
+      }),
+      PrizeService.createPrize({
+        name: "HAND FAN",
+        image: "/prize/fan.png",
+        weight: 46,
+        stock: 46,
+        color: "#0D1F3C",
+      }),
+      PrizeService.createPrize({
+        name: "PEN",
+        image: "/prize/pen.png",
+        weight: 50,
+        stock: 50,
+        color: "#25569E",
+      }),
+    ]);
 
-      if (count.count > 0) {
-        db.close();
-        throw new Error(
-          "Database already seeded. Please delete existing data first.",
-        );
-      }
-
-      console.log("Seeding database...");
-
-      const prizes = [
-        ["KEY CHAIN", "/prize/keychain.png", 65, 65, "#25569E"],
-        ["NOTEBOOK", "/prize/notebook.png", 20, 20, "#0D1F3C"],
-        ["MUG", "/prize/mug.png", 16, 16, "#25569E"],
-        ["HAND FAN", "/prize/fan.png", 46, 46, "#0D1F3C"],
-        ["PEN", "/prize/pen.png", 50, 50, "#25569E"],
-      ];
-
-      const insert = db.prepare(`
-        INSERT INTO prizes (name, image, weight, stock, color)
-        VALUES (?, ?, ?, ?, ?)
-      `);
-
-      const insertMany = db.transaction((prizes) => {
-        for (const prize of prizes) {
-          insert.run(...prize);
-        }
-      });
-
-      insertMany(prizes);
-
-      const finalCount = db
-        .prepare("SELECT COUNT(*) as count FROM prizes")
-        .get() as { count: number };
-      console.log(
-        "Database seeded successfully! Total prizes:",
-        finalCount.count,
-      );
-
-      db.close();
-    });
+    console.log("Prizes seeded successfully! Total 5 prizes.");
 
     return NextResponse.json({
       success: true,
@@ -92,15 +93,13 @@ export async function DELETE(request: Request) {
       );
     }
 
-    await blobSync.withSync(async () => {
-      const db = initDatabase();
+    // Clear all prizes
+    const prizes = await PrizeService.getAllPrizes();
+    for (const prize of prizes) {
+      await PrizeService.deletePrize(prize.id);
+    }
 
-      // Clear all prizes
-      db.prepare("DELETE FROM prizes").run();
-
-      console.log("🗑️  All prizes deleted");
-      db.close();
-    });
+    console.log(`🗑️  Deleted ${prizes.length} prizes`);
 
     return NextResponse.json({
       success: true,

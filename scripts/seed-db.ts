@@ -1,52 +1,65 @@
-import Database from "better-sqlite3";
-import { blobSync } from "@/components/lib/db/blobSync";
-import { initDatabase } from "@/components/lib/db/schema"; // ← tambah ini
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+);
+
+const prizes = [
+  {
+    name: "KEY CHAIN",
+    image: "/prize/keychain.png",
+    weight: 65,
+    stock: 65,
+    color: "#25569E",
+  },
+  {
+    name: "NOTEBOOK",
+    image: "/prize/notebook.png",
+    weight: 20,
+    stock: 20,
+    color: "#0D1F3C",
+  },
+  {
+    name: "MUG",
+    image: "/prize/mug.png",
+    weight: 16,
+    stock: 16,
+    color: "#25569E",
+  },
+  {
+    name: "HAND FAN",
+    image: "/prize/fan.png",
+    weight: 46,
+    stock: 46,
+    color: "#0D1F3C",
+  },
+  {
+    name: "PEN",
+    image: "/prize/pen.png",
+    weight: 50,
+    stock: 50,
+    color: "#25569E",
+  },
+];
 
 async function main() {
-  const dbPath = path.join(process.cwd(), "tmp", "prizes.db");
-  blobSync.forceDbPath(dbPath);
-
-  console.log("B path:", dbPath);
-
-  await blobSync.downloadFromBlob();
-
-  initDatabase();
-
-  const db = new Database(dbPath);
-  db.pragma("journal_mode = WAL");
-
-  console.log("Seeding database...");
-
-  db.prepare("DELETE FROM prizes").run();
-
-  const prizes = [
-    ["KEY CHAIN", "/prize/keychain.png", 65, 65, "#25569E"],
-    ["NOTEBOOK", "/prize/notebook.png", 20, 20, "#0D1F3C"],
-    ["MUG", "/prize/mug.png", 16, 16, "#25569E"],
-    ["HAND FAN", "/prize/fan.png", 46, 46, "#0D1F3C"],
-    ["PEN", "/prize/pen.png", 50, 50, "#25569E"],
-  ];
-
-  const insert = db.prepare(`
-    INSERT INTO prizes (name, image, weight, stock, color)
-    VALUES (?, ?, ?, ?, ?)
-  `);
-
-  for (const prize of prizes) {
-    insert.run(...prize);
+  const { error: delError } = await supabase
+    .from("prizes")
+    .delete()
+    .gte("id", 1);
+  if (delError) {
+    console.error("Delete failed:", delError);
+    process.exit(1);
   }
 
-  console.log("Database seeded successfully!");
-  console.log(
-    "Total prizes:",
-    db.prepare("SELECT COUNT(*) as count FROM prizes").get(),
-  );
+  const { data, error } = await supabase.from("prizes").insert(prizes).select();
+  if (error) {
+    console.error("Insert failed:", error);
+    process.exit(1);
+  }
 
-  db.close();
-
-  const uploaded = await blobSync.uploadToBlob();
-  console.log("Blob upload:", uploaded ? "SUCCESS" : "SKIPPED (local)");
+  console.log("Seeded:", data);
 }
 
 main().catch(console.error);

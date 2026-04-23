@@ -1,4 +1,3 @@
-// app/api/prizes/update/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import PrizeService from "@/components/lib/db/appService";
 

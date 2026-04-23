@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { put } from "@vercel/blob";
+import { StorageService } from "@/components/lib/db/storageService";
 import { writeFile } from "fs/promises";
 import path from "path";
 
-const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
-const IS_LOCAL = !BLOB_TOKEN || !BLOB_TOKEN.startsWith("vercel_blob_rw_");
+const IS_LOCAL = process.env.NODE_ENV === "development";
 
 export async function POST(request: Request) {
   try {
@@ -28,23 +27,26 @@ export async function POST(request: Request) {
       const filePath = path.join(uploadDir, filename);
 
       // Create directory if not exists
-      const fs = require("fs");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
+      import("fs/promises").then(async ({ mkdir, access }) => {
+        try {
+          await access(uploadDir);
+        } catch {
+          await mkdir(uploadDir, { recursive: true });
+        }
+      });
 
       await writeFile(filePath, buffer);
       const url = `/uploads/${filename}`;
 
       return NextResponse.json({ success: true, url });
     } else {
-      // Production: Upload to Vercel Blob
-      const blob = await put(`customization/${filename}`, buffer, {
-        access: "public",
-        token: BLOB_TOKEN!,
-      });
-
-      return NextResponse.json({ success: true, url: blob.url });
+      // Production: Upload to Supabase Storage
+      const result = await StorageService.upload(
+        "customization",
+        `customization/${filename}`,
+        buffer,
+      );
+      return NextResponse.json({ success: true, url: result.url });
     }
   } catch (error) {
     console.error("Error uploading image:", error);

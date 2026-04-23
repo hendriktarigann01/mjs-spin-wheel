@@ -1,4 +1,4 @@
-// app/api/prizes/delete/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import PrizeService from "@/components/lib/db/appService";
 

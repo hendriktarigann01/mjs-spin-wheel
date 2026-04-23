@@ -28,7 +28,7 @@ export function HomePage() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [settings, setSettings] = useState<Settings | null>(null);
   const router = useRouter();
-  
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -314,27 +314,6 @@ export function HomePage() {
         isProduction={IS_PRODUCTION}
         // settings={settings}
       />
-
-      {!IS_PRODUCTION && (
-        <div className="absolute top-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs z-50 max-h-96 overflow-y-auto">
-          <p className="mb-2">DEBUG MODE</p>
-          <p className="mb-1">Wheel: {wheelPrizes.length} segments</p>
-          <p className="text-[10px] mb-2">
-            Order:{" "}
-            {wheelPrizes
-              .map((p, i) => `${i + 1}:${p.name.substring(0, 3)}`)
-              .join(" ")}
-          </p>
-          <p className="mb-2">Base Prizes:</p>
-          {basePrizes.map((p) => (
-            <p key={p.id}>
-              {p.name}: W={p.weight} S={p.stock}
-            </p>
-          ))}
-          <p className="mb-2 mt-4">Settings:</p>
-          <p className="text-[10px]">{JSON.stringify(settings, null, 2)}</p>
-        </div>
-      )}
     </div>
   );
 }

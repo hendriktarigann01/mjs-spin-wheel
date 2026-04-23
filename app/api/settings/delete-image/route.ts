@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { del } from "@vercel/blob";
+import { StorageService } from "@/components/lib/db/storageService";
 import { readdir, unlink } from "fs/promises";
 import path from "path";
 
-const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
-const IS_LOCAL = !BLOB_TOKEN || !BLOB_TOKEN.startsWith("vercel_blob_rw_");
+const IS_LOCAL = process.env.NODE_ENV === "development";
 
 export async function DELETE() {
   try {
@@ -32,32 +31,12 @@ export async function DELETE() {
         });
       }
     } else {
-      // Production: Delete from Vercel Blob
-      const { blobs } = await fetch(
-        `https://blob.vercel-storage.com/?prefix=customization/`,
-        {
-          headers: {
-            authorization: `Bearer ${BLOB_TOKEN}`,
-          },
-        },
-      ).then((res) => res.json());
-
-      if (blobs && blobs.length > 0) {
-        await Promise.all(
-          blobs.map((blob: { url: string }) =>
-            del(blob.url, { token: BLOB_TOKEN! }),
-          ),
-        );
-
-        return NextResponse.json({
-          success: true,
-          message: `Deleted ${blobs.length} file(s)`,
-        });
-      }
+      // Production: Delete from Supabase Storage
+      await StorageService.deleteAll("customization");
 
       return NextResponse.json({
         success: true,
-        message: "No files to delete",
+        message: "Deleted all customization files",
       });
     }
   } catch (error) {
