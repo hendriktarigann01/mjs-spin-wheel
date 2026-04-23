@@ -1,3 +1,4 @@
+import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { StorageService } from "@/components/lib/db/storageService";
 
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate unique filename
-    import path from "path";
+
     const timestamp = Date.now();
     const extension = file.name.split(".").pop();
     const filename = `prize-${timestamp}.${extension}`;
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
         if (!fs.existsSync(uploadDir))
           fs.mkdirSync(uploadDir, { recursive: true });
       });
-      await import("fs/promises").then(({ writeFile }) =>
+      await import("fs/promises").then(async ({ writeFile }) =>
         writeFile(
           path.join(uploadDir, filename),
           Buffer.from(await file.arrayBuffer()),
