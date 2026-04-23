@@ -24,8 +24,8 @@ async function main() {
     ["KEY CHAIN", "/prize/keychain.png", 65, 65, "#25569E"],
     ["NOTEBOOK", "/prize/notebook.png", 20, 20, "#0D1F3C"],
     ["MUG", "/prize/mug.png", 16, 16, "#25569E"],
-    ["HAND FAN", "/prize/fan.png", 6, 6, "#0D1F3C"],
-    ["PEN", "/prize/pen.png", 30, 0, "#25569E"],
+    ["HAND FAN", "/prize/fan.png", 46, 46, "#0D1F3C"],
+    ["PEN", "/prize/pen.png", 50, 50, "#25569E"],
   ];
 
   const insert = db.prepare(`
